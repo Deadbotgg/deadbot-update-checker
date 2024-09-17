@@ -8,7 +8,7 @@ RUN apk add --no-cache git bash
 WORKDIR /app
 
 # Clone the public git repository
-RUN git clone https://github.com/username/repo.git /app/repo
+RUN git clone https://github.com/SteamDatabase/GameTracking-Deadlock.git /app/repo
 
 # Copy the pull and run script into the container
 COPY fetch.sh /app/fetch.sh
