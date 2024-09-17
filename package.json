@@ -2,6 +2,9 @@
   "name": "deadbot-update-checker",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "dev": "bun run --hot index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
