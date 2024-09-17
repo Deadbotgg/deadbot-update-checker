@@ -126,10 +126,17 @@ function getFiles(dir: string): string[] {
 }
 
 // read all files in the directory
-function readFiles(dir: string): string[] {
-  return getFiles(dir).map((file) => fs.readFileSync(file, 'utf-8'));
+function readFiles(dir: string): { name: string | undefined; data: string }[] {
+  return getFiles(dir).map((file) => ({
+    name: file?.split('/')?.pop()?.split('.').shift(),
+    data: fs.readFileSync(file, 'utf-8'),
+  }));
 }
 
+readFiles('./data').forEach(({ data, name }) => {
+  const lines = data.split(/\r?\n/);
+  const result = parseVData(lines);
+  console.log(result);
 
-parseVData(readFiles('/app/repo'))
-
+  fs.writeFileSync(`./data/${name}.json`, JSON.stringify(result, null, 2));
+});
