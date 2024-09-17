@@ -7,8 +7,6 @@ RUN apk add --no-cache git bash
 # Set the working directory inside the container
 WORKDIR /app
 
-RUN git clone https://github.com/Deadbotgg/deadbot-update-checker.git /app
-
 # Clone the public git repository
 RUN git clone https://github.com/SteamDatabase/GameTracking-Deadlock.git /app/repo
 
@@ -19,7 +17,7 @@ COPY fetch.sh /app/fetch.sh
 RUN chmod +x /app/fetch.sh
 
 # Add the cron job to check for updates every 5 minutes
-RUN echo "*/5 * * * * /app/fetch.sh" >> /etc/crontab
+RUN echo "*/5 * * * * /app/fetch.sh >> /app/logs/cron.log" >> /etc/crontab
 
 # Start cron in the foreground (important for Docker)
 CMD ["crond", "-f"]
