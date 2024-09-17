@@ -7,6 +7,22 @@ RUN apk add --no-cache git bash
 # Set the working directory inside the container
 WORKDIR /app
 
+# Install dependencies
+FROM base AS install
+COPY package.json bun.lockb ./
+RUN bun install --frozen-lockfile
+
+# Copy source code
+FROM base AS prerelease
+COPY --from=install /app/node_modules node_modules
+COPY . .
+
+# Final stage
+FROM base AS release
+COPY --from=install /app/node_modules node_modules
+COPY --from=prerelease /app .
+
+
 RUN git clone https://github.com/Deadbotgg/deadbot-update-checker.git /app
 
 # Clone the public git repository
