@@ -17,9 +17,3 @@ COPY fetch.sh /app/fetch.sh
 
 # Make the script executable
 RUN chmod +x /app/fetch.sh
-
-# Add the cron job to check for updates every 5 minutes
-RUN echo "*/5 * * * * /app/fetch.sh >> /app/logs/cron.l" >> /etc/crontab
-
-# Start cron in the foreground (important for Docker)
-CMD ["crond", "-f"]
