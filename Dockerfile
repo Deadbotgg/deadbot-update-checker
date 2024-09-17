@@ -23,8 +23,6 @@ COPY --from=install /app/node_modules node_modules
 COPY --from=prerelease /app .
 
 
-RUN git clone https://github.com/Deadbotgg/deadbot-update-checker.git /app
-
 # Clone the public git repository
 RUN git clone https://github.com/SteamDatabase/GameTracking-Deadlock.git /app/repo
 
