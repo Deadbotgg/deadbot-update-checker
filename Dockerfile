@@ -7,6 +7,8 @@ RUN apk add --no-cache git bash
 # Set the working directory inside the container
 WORKDIR /app
 
+RUN git clone https://github.com/Deadbotgg/deadbot-update-checker.git /app
+
 # Clone the public git repository
 RUN git clone https://github.com/SteamDatabase/GameTracking-Deadlock.git /app/repo
 
