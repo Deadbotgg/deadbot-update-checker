@@ -1,19 +1,17 @@
-FROM ubuntu:latest
+# Use the official Bun image
+FROM oven/bun:1-alpine AS base
 
-RUN apt-get update && \
-    apt-get install -y git cron && \
-    apt-get clean
+# Install Git and other necessary utilities
+RUN apk add --no-cache git bash
 
+# Set the working directory inside the container
 WORKDIR /app
 
+# Clone the public git repository
 RUN git clone https://github.com/SteamDatabase/GameTracking-Deadlock.git /app/repo
 
+# Copy the pull and run script into the container
 COPY fetch.sh /app/fetch.sh
 
+# Make the script executable
 RUN chmod +x /app/fetch.sh
-
-RUN echo "*/15 * * * * /app/pull_and_parse.sh >> /var/log/cron.log 2>&1" >> /etc/crontab
-COPY pull_and_parse.sh /app/pull_and_parse.sh
-RUN chmod +x /app/pull_and_parse.sh
-
-CMD ["cron", "-f"]
