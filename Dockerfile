@@ -1,8 +1,8 @@
 # Use the official Bun image
 FROM oven/bun:1-alpine AS base
 
-# Install Git and other necessary utilities
-RUN apk add --no-cache git bash
+# Install Git, cron, and other necessary utilities
+RUN apk add --no-cache git bash dcron
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -32,5 +32,12 @@ COPY pull_and_parse.sh /app/pull_and_parse.sh
 # Make the scripts executable
 RUN chmod +x /app/fetch.sh /app/pull_and_parse.sh
 
-# Set the entrypoint to run the fetch script
-ENTRYPOINT ["/bin/bash", "/app/fetch.sh"]
+# Create a crontab file
+RUN echo "*/5 * * * * /bin/bash /app/fetch.sh >> /var/log/cron.log 2>&1" > /etc/crontabs/root
+
+# Create an entrypoint script
+RUN echo -e '#!/bin/sh\ncrond -f -d 8 &\n/bin/bash /app/fetch.sh' > /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# Set the entrypoint to run the entrypoint script
+ENTRYPOINT ["/app/entrypoint.sh"]
