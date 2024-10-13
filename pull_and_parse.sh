@@ -1,3 +1,8 @@
 #!/bin/bash
 
-echo "We pulled it off and now time to parse!"
+cd /app
+
+# Run index.ts using Bun
+bun run index.ts
+
+echo "Parsing complete."

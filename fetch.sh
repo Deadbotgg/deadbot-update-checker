@@ -2,26 +2,17 @@
 
 cd /app/repo
 
-# Fetch the latest changes from the remote repository
-git fetch origin
+# Fetch changes from the remote repository
+git fetch
 
-# Check if the local branch is behind the remote branch
-LOCAL=$(git rev-parse @)
-REMOTE=$(git rev-parse @{u})
-
-if [ $LOCAL != $REMOTE ]; then
-    echo "New changes detected, pulling and running the script."
-    git pull origin main
-   
-    # Run the script
-        # Install any new dependencies using Bun
-    bun install --frozen-lockfile
-
-    # Stop the current running Bun app (optional, if needed)
-    pkill -f 'bun run dev'
-
-    # Start the Bun app
-    bun run dev &
+# Check if there are any changes
+if [ "$(git rev-parse HEAD)" != "$(git rev-parse @{u})" ]; then
+    echo "Changes detected. Pulling updates and parsing data..."
+    git pull
+    /bin/bash /app/pull_and_parse.sh
 else
-    echo "No new changes."
+    echo "No changes detected."
 fi
+
+# Keep the container running
+tail -f /dev/null

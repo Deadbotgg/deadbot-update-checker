@@ -22,12 +22,15 @@ FROM base AS release
 COPY --from=install /app/node_modules node_modules
 COPY --from=prerelease /app .
 
-
 # Clone the public git repository
 RUN git clone https://github.com/SteamDatabase/GameTracking-Deadlock.git /app/repo
 
-# Copy the pull and run script into the container
+# Copy the fetch and parse scripts into the container
 COPY fetch.sh /app/fetch.sh
+COPY pull_and_parse.sh /app/pull_and_parse.sh
 
-# Make the script executable
-RUN chmod +x /app/fetch.sh
+# Make the scripts executable
+RUN chmod +x /app/fetch.sh /app/pull_and_parse.sh
+
+# Set the entrypoint to run the fetch script
+ENTRYPOINT ["/bin/bash", "/app/fetch.sh"]

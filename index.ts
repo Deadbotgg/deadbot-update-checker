@@ -136,7 +136,6 @@ function readFiles(dir: string): { name: string | undefined; data: string }[] {
 readFiles('./data').forEach(({ data, name }) => {
   const lines = data.split(/\r?\n/);
   const result = parseVData(lines);
-  console.log(result);
 
   fs.writeFileSync(`./data/${name}.json`, JSON.stringify(result, null, 2));
 });
