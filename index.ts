@@ -132,7 +132,7 @@ function getVDataFiles(dir: string): string[] {
   try {
     const dirents = fs.readdirSync(dir, { withFileTypes: true });
     const files = dirents
-      .filter((dirent) => dirent.isFile() && dirent.name.endsWith('.vdata'))
+      .filter((dirent) => dirent.isFile() && (dirent.name.endsWith('.vdata') || dirent.name.endsWith('.txt')))
       .map((dirent) => path.join(dir, dirent.name));
     const dirs = dirents.filter((dirent) => dirent.isDirectory());
     for (const d of dirs) {
@@ -149,7 +149,7 @@ function getVDataFiles(dir: string): string[] {
 function readVDataFiles(dir: string): { name: string; data: string }[] {
   const files = getVDataFiles(dir);
   return files.map((file) => ({
-    name: path.basename(file, '.vdata'),
+    name: path.basename(file,'.vdata' ),
     data: fs.readFileSync(file, 'utf-8'),
   }));
 }
