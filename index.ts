@@ -46,7 +46,6 @@ export function parseVData(lines: string[]): any {
       const arr: any[] = [];
       if (Array.isArray(current)) {
         if (previousLine?.trim() === '[') {
-          console.log(line, previousLine.trim(), i)
           current.push(arr);
           stack.push(current);
           current = arr;
@@ -132,7 +131,11 @@ function getVDataFiles(dir: string): string[] {
   try {
     const dirents = fs.readdirSync(dir, { withFileTypes: true });
     const files = dirents
-      .filter((dirent) => dirent.isFile() && (dirent.name.endsWith('.vdata') || dirent.name.endsWith('.txt')))
+      .filter(
+        (dirent) =>
+          dirent.isFile() &&
+          (dirent.name.endsWith('.vdata') || dirent.name.endsWith('.txt'))
+      )
       .map((dirent) => path.join(dir, dirent.name));
     const dirs = dirents.filter((dirent) => dirent.isDirectory());
     for (const d of dirs) {
@@ -149,12 +152,11 @@ function getVDataFiles(dir: string): string[] {
 function readVDataFiles(dir: string): { name: string; data: string }[] {
   const files = getVDataFiles(dir);
   return files.map((file) => ({
-    name: path.basename(file,'.vdata' ),
+    name: path.basename(file, '.vdata'),
     data: fs.readFileSync(file, 'utf-8'),
   }));
 }
 
-// Main function to process .vdata files
 function processVDataFiles(steamdbRepoPath: string) {
   console.log(`Processing .vdata files in ${steamdbRepoPath}`);
 
@@ -163,22 +165,31 @@ function processVDataFiles(steamdbRepoPath: string) {
     return;
   }
 
-  const vdataFiles = readVDataFiles(steamdbRepoPath);
+  const vdataFiles = getVDataFiles(steamdbRepoPath);
 
   if (vdataFiles.length === 0) {
     console.log('No .vdata files found.');
     return;
   }
 
-  const outputDir = path.join('/app', 'output');
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
+  const outputBaseDir = path.join('/app', 'output');
+  if (!fs.existsSync(outputBaseDir)) {
+    fs.mkdirSync(outputBaseDir, { recursive: true });
   }
 
-  vdataFiles.forEach(({ data, name }) => {
-    console.log(`Processing file: ${name}.vdata`);
+  vdataFiles.forEach((file) => {
+    console.log(`Processing file: ${file}`);
+    const data = fs.readFileSync(file, 'utf-8');
     const lines = data.split(/\r?\n/);
     const result = parseVData(lines);
+
+    const parentDir = path.basename(path.dirname(file));
+    const name = path.basename(file, '.vdata');
+    const outputDir = path.join(outputBaseDir, parentDir);
+    
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
 
     const outputPath = path.join(outputDir, `${name}.json`);
     console.log(`Writing output to: ${outputPath}`);
