@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
+const preferredFolders = ['scripts', 'localization', 'styles'];
+
 export function parseVData(lines: string[]): any {
   let stack: any[] = [];
   let current: any = {};
@@ -182,11 +184,14 @@ function processVDataFiles(steamdbRepoPath: string) {
     const data = fs.readFileSync(file, 'utf-8');
     const lines = data.split(/\r?\n/);
     const result = parseVData(lines);
-
-    const parentDir = path.basename(path.dirname(file));
+    let parentDir = path.basename(path.dirname(file));
+    const preferredFoldersIndex = preferredFolders.findIndex((folder) => file.includes(folder));
+    if (preferredFoldersIndex !== -1) {
+      parentDir = preferredFolders[preferredFoldersIndex];
+    }
     const name = path.basename(file, '.vdata');
     const outputDir = path.join(outputBaseDir, parentDir);
-    
+
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
