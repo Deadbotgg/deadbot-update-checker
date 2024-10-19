@@ -18,7 +18,7 @@ COPY . .
 RUN mkdir -p /app/repo
 
 # Ensure scripts use LF line endings
-RUN dos2unix /app/fetch.sh /app/pull_and_parse.sh
+RUN dos2unix /app/fetch.sh /app/pull_and_parse.sh /app/commit_parsed_data.sh
 
 # Make the scripts executable
 RUN chmod +x /app/fetch.sh /app/pull_and_parse.sh /app/commit_parsed_data.sh
