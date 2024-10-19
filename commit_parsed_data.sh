@@ -9,9 +9,16 @@ if [ -z "$GITHUB_TOKEN" ]; then
     exit 1
 fi
 
-git init 
-git remote remove origin
-git remote add origin "https://${GITHUB_TOKEN}@github.com/Deadbotgg/deadlock-data.git"
+# Clone the repository if it doesn't exist
+if [ ! -d ".git" ]; then
+    git clone "https://${GITHUB_TOKEN}@github.com/Deadbotgg/deadlock-data.git" .
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to clone the repository."
+        exit 1
+    fi
+fi
+
+# Fetch the latest changes
 git fetch origin
 
 # Create a new branch with today's date
