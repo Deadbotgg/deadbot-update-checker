@@ -26,9 +26,9 @@ interface HeroData {
 export function collateHeroData(outputBaseDir: string): void {
   console.log('Collating hero data...');
 
-  const heroesFile = path.join(outputBaseDir, 'data', 'heroes.json');
-  const abilitiesFile = path.join(outputBaseDir, 'data', 'abilities.json');
-  const localisationFile = path.join(outputBaseDir, 'data', 'citadel_heroes_english.txt.json');
+  const heroesFile = path.join(outputBaseDir, 'scripts', 'heroes.json');
+  const abilitiesFile = path.join(outputBaseDir, 'scripts', 'abilities.json');
+  const localisationFile = path.join(outputBaseDir, 'localisation', 'citadel_heroes_english.json');
 
   if (!fs.existsSync(heroesFile) || !fs.existsSync(abilitiesFile) || !fs.existsSync(localisationFile)) {
     console.error('Required files are missing. Make sure all necessary files have been parsed.');

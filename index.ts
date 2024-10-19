@@ -202,13 +202,9 @@ function processFiles(steamdbRepoPath: string) {
     const data = fs.readFileSync(file, 'utf-8');
     const lines = data.split(/\r?\n/);
     const result = ext === '.vdata' ? parseVData(lines) : parseLocalisation(lines);
-    let parentDir = path.basename(path.dirname(file));
-    const preferredFoldersIndex = preferredFolders.findIndex((folder) => file.includes(folder));
-    if (preferredFoldersIndex !== -1) {
-      parentDir = preferredFolders[preferredFoldersIndex];
-    }
-    const name = path.basename(file, '.vdata');
-    console.log(outputBaseDir)
+    let parentDir = ext === '.vdata' ? 'scripts' : 'localisation';
+
+    const name = path.basename(file, ext);
     const outputDir = path.join(outputBaseDir, parentDir);
 
     if (!fs.existsSync(outputDir)) {
