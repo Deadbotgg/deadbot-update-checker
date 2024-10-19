@@ -13,3 +13,8 @@ git pull
 bun run index.ts
 
 echo "Parsing complete."
+
+# Run the commit_parsed_data.sh script
+./commit_parsed_data.sh
+
+echo "Parsed data committed and pushed to new branch."
