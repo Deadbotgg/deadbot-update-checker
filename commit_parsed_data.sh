@@ -4,7 +4,7 @@
 cd /output
 
 git init 
-git remote add origin git@github.com:Deadbotgg/deadlock-data.git
+git remote add origin https://github.com/Deadbotgg/deadlock-data.git
 git fetch origin
 
 # Create a new branch with today's date
