@@ -28,3 +28,11 @@ git commit -m "Update parsed data for $branch_name"
 git push -u origin $branch_name
 
 echo "Parsed data committed and pushed to branch $branch_name"
+
+# Update main branch with the changes from the new branch
+git fetch origin main
+git checkout main
+git merge --no-ff $branch_name -m "Merge branch '$branch_name' into main"
+git push origin main
+
+echo "Main branch updated with changes from $branch_name"

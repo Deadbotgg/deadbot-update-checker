@@ -17,4 +17,4 @@ echo "Parsing complete."
 # Run the commit_parsed_data.sh script
 ./commit_parsed_data.sh
 
-echo "Parsed data committed and pushed to new branch."
+echo "Parsed data committed and pushed to new branch, and main branch updated."

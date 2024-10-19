@@ -25,8 +25,8 @@ RUN chmod +x /app/fetch.sh /app/pull_and_parse.sh /app/commit_parsed_data.sh
 
 # Configure Git
 RUN git config --global init.defaultBranch master
-RUN git config --global user.email "docker@example.com"
-RUN git config --global user.name "Docker Container"
+RUN git config --global user.email "patron@deadbot.gg"
+RUN git config --global user.name "Patron"
 
 # Set up cron job
 RUN echo "*/5 * * * * /bin/bash /app/fetch.sh >> /var/log/fetch.log 2>&1" > /etc/crontabs/root
