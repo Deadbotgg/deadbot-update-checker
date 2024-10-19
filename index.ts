@@ -193,7 +193,7 @@ function processFiles(steamdbRepoPath: string) {
     return;
   }
 
-  const outputBaseDir = path.join(steamdbRepoPath, process.env.OUTPUT_PATH || '../output');
+  const outputBaseDir = path.join(steamdbRepoPath, process.env.OUTPUT_PATH || '../../output');
   if (!fs.existsSync(outputBaseDir)) {
     fs.mkdirSync(outputBaseDir, { recursive: true });
   }
@@ -236,4 +236,4 @@ const steamdbRepoPath = process.env.DATA_PATH || "/app/repo";
 // Call the main function
 processFiles(steamdbRepoPath);
 
-collateHeroData('./data/output');
+collateHeroData(path.join(steamdbRepoPath, process.env.OUTPUT_PATH || '../../output'));
