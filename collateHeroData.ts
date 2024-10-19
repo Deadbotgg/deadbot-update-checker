@@ -1,5 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import {
+    convertAbility,
+    type ConvertedAbility,
+} from './generic_ability_parser';
 
 interface HeroData {
   id: number;
@@ -19,7 +23,7 @@ interface HeroData {
     base_health_regen: number;
     stamina_regen_per_second: number;
   };
-  abilities: string[];
+  abilities: string[] | ConvertedAbility[];
   level_upgrades: { [key: string]: string | null };
 }
 
@@ -28,10 +32,20 @@ export function collateHeroData(outputBaseDir: string): void {
 
   const heroesFile = path.join(outputBaseDir, 'scripts', 'heroes.json');
   const abilitiesFile = path.join(outputBaseDir, 'scripts', 'abilities.json');
-  const localisationFile = path.join(outputBaseDir, 'localisation', 'citadel_heroes_english.json');
+  const localisationFile = path.join(
+    outputBaseDir,
+    'localisation',
+    'citadel_heroes_english.json'
+  );
 
-  if (!fs.existsSync(heroesFile) || !fs.existsSync(abilitiesFile) || !fs.existsSync(localisationFile)) {
-    console.error('Required files are missing. Make sure all necessary files have been parsed.');
+  if (
+    !fs.existsSync(heroesFile) ||
+    !fs.existsSync(abilitiesFile) ||
+    !fs.existsSync(localisationFile)
+  ) {
+    console.error(
+      'Required files are missing. Make sure all necessary files have been parsed.'
+    );
     console.log('Heroes file exists:', fs.existsSync(heroesFile));
     console.log('Abilities file exists:', fs.existsSync(abilitiesFile));
     console.log('Localisation file exists:', fs.existsSync(localisationFile));
@@ -66,7 +80,6 @@ export function collateHeroData(outputBaseDir: string): void {
 
   if (!heroesData || typeof heroesData !== 'object' || !heroesData) {
     console.error('Invalid heroes data structure');
-    // console.log('Heroes data:', JSON.stringify(heroesData, null, 2));
     return;
   }
 
@@ -77,31 +90,39 @@ export function collateHeroData(outputBaseDir: string): void {
     if (!heroName.startsWith('hero_')) continue;
 
     const cleanHeroName = heroName.replace('hero_', '');
-    // const heroDir = path.join(outputBaseDir, 'heroes', cleanHeroName);
-
-    // if (!fs.existsSync(heroDir)) {
-    //   console.log(`Hero directory not found for ${cleanHeroName}, skipping`);
-    //   continue;
-    // }
 
     try {
       const hero: HeroData = {
         id: (heroData as any)['m_HeroID'],
         new_player_friendly: (heroData as any)['m_bNewPlayerFriendly'] || false,
         starting_stats: {
-          max_move_speed: (heroData as any)['m_mapStartingStats']['EMaxMoveSpeed'],
+          max_move_speed: (heroData as any)['m_mapStartingStats'][
+            'EMaxMoveSpeed'
+          ],
           sprint_speed: (heroData as any)['m_mapStartingStats']['ESprintSpeed'],
           crouch_speed: (heroData as any)['m_mapStartingStats']['ECrouchSpeed'],
-          move_acceleration: (heroData as any)['m_mapStartingStats']['EMoveAcceleration'],
-          light_melee_damage: (heroData as any)['m_mapStartingStats']['ELightMeleeDamage'],
-          heavy_melee_damage: (heroData as any)['m_mapStartingStats']['EHeavyMeleeDamage'],
+          move_acceleration: (heroData as any)['m_mapStartingStats'][
+            'EMoveAcceleration'
+          ],
+          light_melee_damage: (heroData as any)['m_mapStartingStats'][
+            'ELightMeleeDamage'
+          ],
+          heavy_melee_damage: (heroData as any)['m_mapStartingStats'][
+            'EHeavyMeleeDamage'
+          ],
           max_health: (heroData as any)['m_mapStartingStats']['EMaxHealth'],
           weapon_power: (heroData as any)['m_mapStartingStats']['EWeaponPower'],
           reload_speed: (heroData as any)['m_mapStartingStats']['EReloadSpeed'],
-          weapon_power_scale: (heroData as any)['m_mapStartingStats']['EWeaponPowerScale'],
+          weapon_power_scale: (heroData as any)['m_mapStartingStats'][
+            'EWeaponPowerScale'
+          ],
           stamina: (heroData as any)['m_mapStartingStats']['EStamina'],
-          base_health_regen: (heroData as any)['m_mapStartingStats']['EBaseHealthRegen'],
-          stamina_regen_per_second: (heroData as any)['m_mapStartingStats']['EStaminaRegenPerSecond'],
+          base_health_regen: (heroData as any)['m_mapStartingStats'][
+            'EBaseHealthRegen'
+          ],
+          stamina_regen_per_second: (heroData as any)['m_mapStartingStats'][
+            'EStaminaRegenPerSecond'
+          ],
         },
         abilities: [],
         level_upgrades: {},
@@ -116,21 +137,15 @@ export function collateHeroData(outputBaseDir: string): void {
         abilities['ESlot_Signature_4'],
       ];
 
-      // Ability Data
-      for (const ability of hero.abilities) {
-        if (ability) {
-          const abilityData = abilitiesData[ability];
-          if (abilityData) {
-            const abilityName = abilityData['m_AbilityName'];
-            if (abilityName) {
-              hero.abilities.push(abilityName);
-            }
-          }
-        }
-      }
+      hero.abilities = hero.abilities.map((ability: string) => ({
+        name: ability,
+        ...convertAbility(abilitiesData, ability),
+      }));
 
       // Level upgrades
-      const standardLevelUpgrades = (heroData as any)['m_mapStandardLevelUpUpgrades'];
+      const standardLevelUpgrades = (heroData as any)[
+        'm_mapStandardLevelUpUpgrades'
+      ];
       for (const [key, value] of Object.entries(standardLevelUpgrades)) {
         hero.level_upgrades[key.toLowerCase()] = value as string;
       }
@@ -143,9 +158,12 @@ export function collateHeroData(outputBaseDir: string): void {
   }
 
   // Write consolidated data
-  const consolidatedFile = path.join(outputBaseDir, 'consolidated_hero_data.json');
+  const consolidatedFile = path.join(outputBaseDir, 'all_hero_data.json');
   try {
-    fs.writeFileSync(consolidatedFile, JSON.stringify(consolidatedData, null, 2));
+    fs.writeFileSync(
+      consolidatedFile,
+      JSON.stringify(consolidatedData, null, 2)
+    );
     console.log(`Consolidated hero data written to: ${consolidatedFile}`);
   } catch (error) {
     console.error('Error writing consolidated data:', error);

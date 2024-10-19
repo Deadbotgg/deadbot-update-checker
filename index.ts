@@ -4,8 +4,6 @@ import path from 'path';
 import { collateHeroData } from './collateHeroData';
 import { parseLocalisation } from './parseLocalisation';
 
-const preferredFolders = ['scripts', 'localization', 'styles'];
-
 dotenv.config();
 
 export function parseVData(lines: string[]): any {
