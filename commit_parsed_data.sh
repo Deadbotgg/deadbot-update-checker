@@ -42,7 +42,7 @@ rm -rf ../backup
 git add .
 
 # Commit local changes
-git commit -m "Local changes" || echo "No changes to commit"
+git commit -m "Automated Update" || echo "No changes to commit"
 
 # Create a new branch with today's date
 branch_name=$(date +"%Y-%m-%d-%H-%M")
