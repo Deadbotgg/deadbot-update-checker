@@ -10,7 +10,7 @@ branch_name=$(date +"%Y-%m-%d-%H-%M")
 git checkout -b $branch_name
 
 # Add all files in the output directory fron .env
-git add .
+git add /app/output
 
 # Commit the changes
 git commit -m "Update parsed data for $branch_name"
