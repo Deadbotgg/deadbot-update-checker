@@ -31,6 +31,14 @@ else
     git checkout -b main origin/main || git checkout -b main
 fi
 
+# Add all untracked files
+git add .
+
+# Commit any untracked files
+if git status --porcelain | grep '^??'; then
+    git commit -m "Add untracked files before merge"
+fi
+
 # Pull the latest changes, allowing unrelated histories
 git pull origin main --allow-unrelated-histories
 
@@ -42,7 +50,7 @@ git checkout -b $branch_name
 git add .
 
 # Commit the changes
-git commit -m "Update parsed data for $branch_name"
+git commit -m "Update parsed data for $branch_name" || echo "No changes to commit"
 
 # Push the new branch to the remote repository
 git push -u origin $branch_name
