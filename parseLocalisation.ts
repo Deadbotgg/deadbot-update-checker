@@ -10,19 +10,22 @@ function parseLocalisation(lines: string[]): LocalisationData {
     const trimmedLine: string = line.trim().replace('//"', '"');
 
     if (trimmedLine.startsWith('"') && trimmedLine.endsWith('"')) {
-      const [key, value] = trimmedLine.match(/(?<!\\)".*?(?<!\\)"/g) ?? [];
+      const parts = trimmedLine.split(/"\s+"/).map(part => part.replace(/^"|"$/g, ''));
+      
+      if (parts.length !== 2) {
+        continue;
+      }
 
-      if(!key || !value) {
-        continue;
-      }
-      if (key?.includes('/')) {
+      const [key, value] = parts;
+
+      if (key.includes('/')) {
         const keys = key.split('/');
-        for (const key of keys) {
-          result[key] = value;
+        for (const k of keys) {
+          result[k] = value;
         }
-        continue;
+      } else {
+        result[key] = value;
       }
-      result[key] = value;
       currentKey = key;
     }
   }
