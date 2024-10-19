@@ -185,10 +185,12 @@ function transformObject(obj: any): any {
 }
 
 function transformKey(key: string): string {
-  // Remove m_str and m_subclass prefixes
+
+  // Remove m_str and m_subclass prefixes 
   let newKey = key.replace(/^m_(str|subclass)/, '');
 
-  // Convert to camelCase
+  // Convert to camelCase 
+  // NOTE: This is a naive implementation
   newKey = newKey.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
 
   // Ensure the first character is lowercase

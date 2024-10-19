@@ -21,6 +21,7 @@ function parseLocalisation(lines: string[]): LocalisationData {
       if (key.includes('/')) {
         const keys = key.split('/');
         for (const k of keys) {
+          if(result[k]) continue;
           result[k] = value;
         }
       } else {

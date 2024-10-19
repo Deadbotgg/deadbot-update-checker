@@ -1,13 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 import {
-    convertAbility,
-    type ConvertedAbility,
+  convertAbility,
+  type ConvertedAbility,
 } from './generic_ability_parser';
 
 interface HeroData {
   id: number;
   new_player_friendly: boolean;
+  name: string;
   starting_stats: {
     max_move_speed: number;
     sprint_speed: number;
@@ -37,6 +38,11 @@ export function collateHeroData(outputBaseDir: string): void {
     'localisation',
     'citadel_heroes_english.json'
   );
+  const gcLocalisationFile = path.join(
+    outputBaseDir,
+    'localisation',
+    'citadel_gc_english.json'
+  );
 
   if (
     !fs.existsSync(heroesFile) ||
@@ -52,7 +58,7 @@ export function collateHeroData(outputBaseDir: string): void {
     return;
   }
 
-  let heroesData, abilitiesData, localisationData;
+  let heroesData, abilitiesData, localisationData, gcLocalisationData;
 
   try {
     heroesData = JSON.parse(fs.readFileSync(heroesFile, 'utf-8'));
@@ -78,6 +84,16 @@ export function collateHeroData(outputBaseDir: string): void {
     return;
   }
 
+  try {
+    gcLocalisationData = JSON.parse(
+      fs.readFileSync(gcLocalisationFile, 'utf-8')
+    );
+    console.log('GC Localisation data parsed successfully');
+  } catch (error) {
+    console.error('Error parsing GC localisation data:', error);
+    return;
+  }
+
   if (!heroesData || typeof heroesData !== 'object' || !heroesData) {
     console.error('Invalid heroes data structure');
     return;
@@ -94,6 +110,7 @@ export function collateHeroData(outputBaseDir: string): void {
     try {
       const hero: HeroData = {
         id: (heroData as any)['m_HeroID'],
+        name: gcLocalisationData['Steam_RP_' + heroName] || heroName,
         new_player_friendly: (heroData as any)['m_bNewPlayerFriendly'] || false,
         starting_stats: {
           max_move_speed: (heroData as any)['m_mapStartingStats'][
@@ -137,10 +154,10 @@ export function collateHeroData(outputBaseDir: string): void {
         abilities['ESlot_Signature_4'],
       ];
 
-      hero.abilities = hero.abilities.map((ability: string) => ({
-        name: ability,
+      hero.abilities = (hero.abilities as string[]).map((ability: string) => ({
+        name: localisationData[ability] || ability,
         ...convertAbility(abilitiesData, ability),
-      }));
+      })) as ConvertedAbility[];
 
       // Level upgrades
       const standardLevelUpgrades = (heroData as any)[
