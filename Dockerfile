@@ -21,7 +21,7 @@ RUN mkdir -p /app/repo
 RUN dos2unix /app/fetch.sh /app/pull_and_parse.sh
 
 # Make the scripts executable
-RUN chmod +x /app/fetch.sh /app/pull_and_parse.sh
+RUN chmod +x /app/fetch.sh /app/pull_and_parse.sh /app/commit_parsed_data.sh
 
 # Configure Git
 RUN git config --global init.defaultBranch master
