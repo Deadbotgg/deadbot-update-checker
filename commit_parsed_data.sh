@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # Ensure we're in the correct directory
-cd "$(dirname "$0")"
+cd /app/output
 
-git init /app/output
+git init 
 
 # Create a new branch with today's date
 branch_name=$(date +"%Y-%m-%d-%H-%M")
 git checkout -b $branch_name
 
-ls -l /app/output
+ls -l
 # Add all files in the output directory fron .env
-git add /app/output
+git add
 
 # Commit the changes
 git commit -m "Update parsed data for $branch_name"
