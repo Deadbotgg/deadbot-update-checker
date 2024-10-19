@@ -1,7 +1,12 @@
+import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
+import { collateHeroData } from './collateHeroData';
+import { parseLocalisation } from './parseLocalisation';
 
 const preferredFolders = ['scripts', 'localization', 'styles'];
+
+dotenv.config();
 
 export function parseVData(lines: string[]): any {
   let stack: any[] = [];
@@ -47,7 +52,7 @@ export function parseVData(lines: string[]): any {
     if (line === '[') {
       const arr: any[] = [];
       if (Array.isArray(current)) {
-        if (previousLine?.trim() === '[') {
+        if (previousLine?.trim() === '[' || previousLine?.trim() === '],') {
           current.push(arr);
           stack.push(current);
           current = arr;
@@ -132,34 +137,46 @@ function parseValue(valueStr: string): any {
 function getVDataFiles(dir: string): string[] {
   try {
     const dirents = fs.readdirSync(dir, { withFileTypes: true });
-    const files = dirents
+    const vDataFiles = dirents
       .filter(
         (dirent) =>
           dirent.isFile() &&
-          (dirent.name.endsWith('.vdata') || dirent.name.endsWith('.txt'))
+          (dirent.name.endsWith('.vdata'))
       )
       .map((dirent) => path.join(dir, dirent.name));
     const dirs = dirents.filter((dirent) => dirent.isDirectory());
     for (const d of dirs) {
-      files.push(...getVDataFiles(path.join(dir, d.name)));
+      vDataFiles.push(...getVDataFiles(path.join(dir, d.name)));
     }
-    return files;
+    return vDataFiles;
   } catch (error) {
     console.error(`Error reading directory ${dir}:`, error);
     return [];
   }
 }
 
-// read all .vdata files in the directory
-function readVDataFiles(dir: string): { name: string; data: string }[] {
-  const files = getVDataFiles(dir);
-  return files.map((file) => ({
-    name: path.basename(file, '.vdata'),
-    data: fs.readFileSync(file, 'utf-8'),
-  }));
+function getLocalisationFiles(dir: string): string[] {
+  try {
+    const directories = fs.readdirSync(dir, { withFileTypes: true });
+    const localisationFiles = directories
+      .filter(
+        (directory) =>
+          directory.isFile() &&
+          (directory.name.endsWith('.txt'))
+      )
+      .map((directory) => path.join(dir, directory.name));
+    const dirs = directories.filter((directory) => directory.isDirectory());
+    for (const d of dirs) {
+      localisationFiles.push(...getLocalisationFiles(path.join(dir, d.name)));
+    }
+    return localisationFiles;
+  } catch (error) {
+    console.error(`Error reading directory ${dir}:`, error);
+    return [];
+  }
 }
 
-function processVDataFiles(steamdbRepoPath: string) {
+function processFiles(steamdbRepoPath: string) {
   console.log(`Processing .vdata files in ${steamdbRepoPath}`);
 
   if (!fs.existsSync(steamdbRepoPath)) {
@@ -169,27 +186,29 @@ function processVDataFiles(steamdbRepoPath: string) {
 
   const vdataFiles = getVDataFiles(steamdbRepoPath);
 
+  const localisationFiles = getLocalisationFiles(steamdbRepoPath);
+
   if (vdataFiles.length === 0) {
     console.log('No .vdata files found.');
     return;
   }
 
-  const outputBaseDir = path.join('/app', 'output');
+  const outputBaseDir = path.join(steamdbRepoPath, 'output');
   if (!fs.existsSync(outputBaseDir)) {
     fs.mkdirSync(outputBaseDir, { recursive: true });
   }
 
-  vdataFiles.forEach((file) => {
-    console.log(`Processing file: ${file}`);
+  function parseFile(file: string, ext: string) {
     const data = fs.readFileSync(file, 'utf-8');
     const lines = data.split(/\r?\n/);
-    const result = parseVData(lines);
+    const result = ext === '.vdata' ? parseVData(lines) : parseLocalisation(lines);
     let parentDir = path.basename(path.dirname(file));
     const preferredFoldersIndex = preferredFolders.findIndex((folder) => file.includes(folder));
     if (preferredFoldersIndex !== -1) {
       parentDir = preferredFolders[preferredFoldersIndex];
     }
     const name = path.basename(file, '.vdata');
+    console.log(outputBaseDir)
     const outputDir = path.join(outputBaseDir, parentDir);
 
     if (!fs.existsSync(outputDir)) {
@@ -200,13 +219,25 @@ function processVDataFiles(steamdbRepoPath: string) {
     console.log(`Writing output to: ${outputPath}`);
     fs.writeFileSync(outputPath, JSON.stringify(result, null, 2));
     console.log(`Parsed data written to: ${outputPath}`);
+  } 
+
+  vdataFiles.forEach((file) => {
+    console.log(`Processing file: ${file}`);
+    parseFile(file, '.vdata');
+  });
+
+  localisationFiles.forEach((file) => {
+    console.log(`Processing file: ${file}`);
+    parseFile(file, '.txt');
   });
 
   console.log('All .vdata files processed successfully.');
 }
 
 // Path to the steamdb repo
-const steamdbRepoPath = '/app/repo';
+const steamdbRepoPath = process.env.DATA_PATH || "/app/repo";
 
 // Call the main function
-processVDataFiles(steamdbRepoPath);
+processFiles(steamdbRepoPath);
+
+collateHeroData('./data/output');
