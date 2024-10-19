@@ -23,34 +23,30 @@ fi
 # Fetch the latest changes
 git fetch origin
 
-# Check if main branch exists locally
-if git show-ref --quiet refs/heads/main; then
-    git checkout main
-else
-    # If main doesn't exist locally, create it tracking origin/main
-    git checkout -b main origin/main || git checkout -b main
-fi
+# Create a backup of local changes
+echo "Creating backup of local changes..."
+mkdir -p ../backup
+cp -R . ../backup/
 
-# Add all untracked files
+# Reset to the latest state of the main branch
+git reset --hard origin/main
+
+# Copy back the local changes
+echo "Restoring local changes..."
+cp -R ../backup/* .
+
+# Remove the backup
+rm -rf ../backup
+
+# Add all files
 git add .
 
-# Commit any untracked files
-if git status --porcelain | grep '^??'; then
-    git commit -m "Add untracked files before merge"
-fi
-
-# Pull the latest changes, allowing unrelated histories
-git pull origin main --allow-unrelated-histories
+# Commit local changes
+git commit -m "Local changes" || echo "No changes to commit"
 
 # Create a new branch with today's date
 branch_name=$(date +"%Y-%m-%d-%H-%M")
 git checkout -b $branch_name
-
-# Add all files in the output directory
-git add .
-
-# Commit the changes
-git commit -m "Update parsed data for $branch_name" || echo "No changes to commit"
 
 # Push the new branch to the remote repository
 git push -u origin $branch_name
