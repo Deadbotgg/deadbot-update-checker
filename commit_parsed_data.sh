@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 git init
 
 # Create a new branch with today's date
-branch_name=$(date +"%Y-%m-%d-[%H-%M]")
+branch_name=$(date +"%Y-%m-%d-%H-%M")
 git checkout -b $branch_name
 
 ls -l /app/output
