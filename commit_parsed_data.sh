@@ -40,10 +40,10 @@ echo "Parsed data committed and pushed to branch $branch_name"
 
 # Checkout main branch
 git fetch origin main
-git checkout main
+git checkout -B main origin/main
 
-# Merge the new branch into main
-git merge --no-ff $branch_name -m "Merge branch '$branch_name' into main"
+# Merge the new branch into main, allowing unrelated histories
+git merge --allow-unrelated-histories --no-ff $branch_name -m "Merge branch '$branch_name' into main"
 
 # Push the updated main branch
 git push origin main
