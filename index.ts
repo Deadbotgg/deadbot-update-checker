@@ -162,6 +162,7 @@ function getLocalisationFiles(dir: string): string[] {
       .filter(
         (directory) =>
           directory.isFile() &&
+          (directory.name.includes('localization')) &&
           (directory.name.endsWith('.txt'))
       )
       .map((directory) => path.join(dir, directory.name));
