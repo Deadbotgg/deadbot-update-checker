@@ -133,16 +133,11 @@ function parseValue(valueStr: string): any {
   return valueStr;
 }
 
-// get all .vdata files in the directory recursively
 function getVDataFiles(dir: string): string[] {
   try {
     const dirents = fs.readdirSync(dir, { withFileTypes: true });
     const vDataFiles = dirents
-      .filter(
-        (dirent) =>
-          dirent.isFile() &&
-          (dirent.name.endsWith('.vdata'))
-      )
+      .filter((dirent) => dirent.isFile() && dirent.name.endsWith('.vdata'))
       .map((dirent) => path.join(dir, dirent.name));
     const dirs = dirents.filter((dirent) => dirent.isDirectory());
     for (const d of dirs) {
@@ -160,17 +155,14 @@ function getLocalisationFiles(dir: string): string[] {
     const directories = fs.readdirSync(dir, { withFileTypes: true });
     const localisationFiles = directories
       .filter(
-        (directory) =>
-          directory.isFile() &&
-          (directory.name.includes('localization')) &&
-          (directory.name.endsWith('.txt'))
+        (directory) => directory.isFile() && directory.name.endsWith('.txt')
       )
       .map((directory) => path.join(dir, directory.name));
     const dirs = directories.filter((directory) => directory.isDirectory());
     for (const d of dirs) {
       localisationFiles.push(...getLocalisationFiles(path.join(dir, d.name)));
     }
-    return localisationFiles;
+    return localisationFiles.filter((file) => file.includes('localization'));
   } catch (error) {
     console.error(`Error reading directory ${dir}:`, error);
     return [];
@@ -194,7 +186,10 @@ function processFiles(steamdbRepoPath: string) {
     return;
   }
 
-  const outputBaseDir = path.join(steamdbRepoPath, process.env.OUTPUT_PATH || '../../output');
+  const outputBaseDir = path.join(
+    steamdbRepoPath,
+    process.env.OUTPUT_PATH || '../../output'
+  );
   if (!fs.existsSync(outputBaseDir)) {
     fs.mkdirSync(outputBaseDir, { recursive: true });
   }
@@ -202,7 +197,8 @@ function processFiles(steamdbRepoPath: string) {
   function parseFile(file: string, ext: string) {
     const data = fs.readFileSync(file, 'utf-8');
     const lines = data.split(/\r?\n/);
-    const result = ext === '.vdata' ? parseVData(lines) : parseLocalisation(lines);
+    const result =
+      ext === '.vdata' ? parseVData(lines) : parseLocalisation(lines);
     let parentDir = ext === '.vdata' ? 'scripts' : 'localisation';
 
     const name = path.basename(file, ext);
@@ -216,7 +212,7 @@ function processFiles(steamdbRepoPath: string) {
     console.log(`Writing output to: ${outputPath}`);
     fs.writeFileSync(outputPath, JSON.stringify(result, null, 2));
     console.log(`Parsed data written to: ${outputPath}`);
-  } 
+  }
 
   vdataFiles.forEach((file) => {
     console.log(`Processing file: ${file}`);
@@ -232,9 +228,11 @@ function processFiles(steamdbRepoPath: string) {
 }
 
 // Path to the steamdb repo
-const steamdbRepoPath = process.env.DATA_PATH || "/app/repo";
+const steamdbRepoPath = process.env.DATA_PATH || '/app/repo';
 
 // Call the main function
 processFiles(steamdbRepoPath);
 
-collateHeroData(path.join(steamdbRepoPath, process.env.OUTPUT_PATH || '../../output'));
+collateHeroData(
+  path.join(steamdbRepoPath, process.env.OUTPUT_PATH || '../../output')
+);
