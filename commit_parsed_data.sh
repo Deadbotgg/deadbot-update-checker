@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Ensure we're in the correct directory
 cd /output
 
@@ -26,11 +28,11 @@ if git show-ref --quiet refs/heads/main; then
     git checkout main
 else
     # If main doesn't exist locally, create it tracking origin/main
-    git checkout -b main origin/main
+    git checkout -b main origin/main || git checkout -b main
 fi
 
-# Pull the latest changes
-git pull origin main
+# Pull the latest changes, allowing unrelated histories
+git pull origin main --allow-unrelated-histories
 
 # Create a new branch with today's date
 branch_name=$(date +"%Y-%m-%d-%H-%M")
@@ -49,7 +51,7 @@ echo "Parsed data committed and pushed to branch $branch_name"
 
 # Update main branch with the changes from the new branch
 git checkout main
-git merge --no-ff $branch_name -m "Merge branch '$branch_name' into main"
+git merge --allow-unrelated-histories --no-ff $branch_name -m "Merge branch '$branch_name' into main"
 git push origin main
 
 echo "Main branch updated with changes from $branch_name"
