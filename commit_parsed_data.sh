@@ -3,7 +3,7 @@
 # Ensure we're in the correct directory
 cd "$(dirname "$0")"
 
-git init
+git init /app/output
 
 # Create a new branch with today's date
 branch_name=$(date +"%Y-%m-%d-%H-%M")
