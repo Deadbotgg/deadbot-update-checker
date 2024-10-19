@@ -3,15 +3,22 @@
 # Ensure we're in the correct directory
 cd /output
 
+# Check if GITHUB_TOKEN is set
+if [ -z "$GITHUB_TOKEN" ]; then
+    echo "Error: GITHUB_TOKEN environment variable is not set."
+    exit 1
+fi
+
 git init 
-git remote add origin https://github.com/Deadbotgg/deadlock-data.git
+git remote remove origin
+git remote add origin "https://${GITHUB_TOKEN}@github.com/Deadbotgg/deadlock-data.git"
 git fetch origin
 
 # Create a new branch with today's date
 branch_name=$(date +"%Y-%m-%d-%H-%M")
 git checkout -b $branch_name
 
-# Add all files in the output directory fron .env
+# Add all files in the output directory
 git add .
 
 # Commit the changes
