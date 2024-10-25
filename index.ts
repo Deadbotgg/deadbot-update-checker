@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { collateHeroData } from './collateHeroData';
+import { collateItemData } from './collateItemsData';
 import { parseLocalisation } from './parseLocalisation';
 
 dotenv.config();
@@ -232,5 +233,9 @@ const steamdbRepoPath = process.env.DATA_PATH || '/app/repo';
 processFiles(steamdbRepoPath);
 
 collateHeroData(
+  path.join(steamdbRepoPath, process.env.OUTPUT_PATH || '../../output')
+);
+
+collateItemData(
   path.join(steamdbRepoPath, process.env.OUTPUT_PATH || '../../output')
 );
