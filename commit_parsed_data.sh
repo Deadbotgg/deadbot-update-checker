@@ -23,29 +23,23 @@ fi
 # Fetch the latest changes
 git fetch origin
 
-# Create a new branch with today's date
-branch_name=$(date +"%Y-%m-%d-%H-%M")
-git checkout -b $branch_name
+# Make sure we're on main
+git checkout main || git checkout -b main
+
+# Get current game commit hash and date
+GAME_COMMIT=$(cd /app && git rev-parse HEAD)
+COMMIT_DATE=$(cd /app && git show -s --format=%ci HEAD)
 
 # Add all files in the output directory
-git add .
+git add -A
 
 # Commit the changes
-git commit -m "Update parsed data for $branch_name"
+git commit -m "Parsed data from game commit $GAME_COMMIT ($COMMIT_DATE)" || {
+    echo "No changes to commit"
+    exit 0
+}
 
-# Push the new branch to the remote repository
-git push -u origin $branch_name
-
-echo "Parsed data committed and pushed to branch $branch_name"
-
-# Checkout main branch
-git fetch origin main
-git checkout -B main origin/main
-
-# Merge the new branch into main, allowing unrelated histories
-git merge --allow-unrelated-histories --no-ff $branch_name -m "Merge branch '$branch_name' into main"
-
-# Push the updated main branch
+# Push the changes to main
 git push origin main
 
-echo "Main branch updated with changes from $branch_name"
+echo "Changes committed and pushed to main branch."
