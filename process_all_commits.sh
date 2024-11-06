@@ -43,8 +43,15 @@ reset_repo() {
     # Remove all files
     rm -rf *
     
+    # Create directory structure
+    mkdir -p data/output/scripts
+    
+    # Create empty README to ensure we can commit
+    echo "# Deadlock Data" > README.md
+    echo "Generated game data repository" >> README.md
+    
     # Create empty initial commit
-    git add -A
+    git add README.md
     git commit -m "Initial empty state"
     
     # Force push to main
