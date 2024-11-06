@@ -169,7 +169,7 @@ function convertTooltipDetails(
   const result: TooltipSection[] = [];
 
   for (const section of tooltipDetails.m_vecAbilityInfoSections) {
-    const descKey = section.m_strLocString.replace('#', '');
+    const descKey = section.m_strLocString?.replace('#', '');
     const convertedSection: TooltipSection = {
       description: localisationData[descKey] || descKey,
       properties: [],
@@ -178,7 +178,7 @@ function convertTooltipDetails(
     if (section.m_vecAbilityPropertiesBlock) {
       for (const block of section.m_vecAbilityPropertiesBlock) {
         if (block.m_strPropertiesTitleLocString) {
-          const blockDescKey = block.m_strPropertiesTitleLocString.replace(
+          const blockDescKey = block.m_strPropertiesTitleLocString?.replace(
             '#',
             ''
           );
