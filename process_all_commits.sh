@@ -26,25 +26,32 @@ clean_working_dir() {
     git stash -u
 }
 
-# Function to delete all remote branches except main
-delete_all_branches() {
-    echo "Deleting all branches from deadlock-data repo..."
+# Function to clear repo data and create empty initial state
+clear_repo_data() {
+    echo "Clearing repository data..."
     cd /output
     
     # Clean working directory first
     clean_working_dir
     
+    # Delete all branches except main
     git fetch origin
-    # Delete all remote branches except main
     git branch -r | grep -v 'main$' | sed 's/origin\///' | while read branch; do
         git push origin --delete "$branch" || true
     done
     
-    # Reset to main branch
-    git fetch origin main
+    # Checkout main
     git checkout main
-    git reset --hard origin/main
-    git clean -fd
+    
+    # Remove all files (except .git)
+    rm -rf *
+    
+    # Create empty initial commit
+    git add -A
+    git commit -m "Initial empty state" || true
+    
+    # Force push to reset main branch to this empty state
+    git push -f origin main
     
     cd "$GAME_REPO"
 }
@@ -99,7 +106,6 @@ process_commit() {
     # Make sure we're on main first
     git fetch origin main
     git checkout main
-    git reset --hard origin/main
     
     # Create and checkout new branch
     git checkout -b $branch_name
@@ -115,35 +121,13 @@ process_commit() {
     # Push the new branch
     git push -u origin $branch_name
     
+    # Switch to main and merge
+    git checkout main
+    git merge --no-ff $branch_name -m "Merge branch '$branch_name' into main"
+    git push origin main
+    
     # Return to game repo directory for next iteration
     cd "$GAME_REPO"
-}
-
-# Function to reset main branch with only our new commits
-reset_main_branch() {
-    echo "Resetting main branch to contain only our new commits..."
-    cd /output
-    
-    # Create a temporary branch
-    git checkout --orphan temp_main
-    
-    # Add all files
-    git add -A
-    
-    # Create initial commit
-    git commit -m "Initial commit - Reset main branch"
-    
-    # Force push to main
-    git push -f origin temp_main:main
-    
-    # Checkout main and reset to our new history
-    git checkout main
-    git reset --hard origin/main
-    
-    # Clean up temporary branch
-    git branch -D temp_main
-    
-    echo "Main branch has been reset successfully."
 }
 
 # Main script execution
@@ -159,8 +143,8 @@ fi
 # Change to game repo directory
 cd "$GAME_REPO"
 
-# First, delete all existing branches
-delete_all_branches
+# First, clear all data from the repo
+clear_repo_data
 
 # Get all commits in reverse chronological order
 commits=$(git log --reverse --format="%H")
@@ -173,8 +157,4 @@ for commit in $commits; do
     }
 done
 
-# Reset main branch to contain only our new commits
-reset_main_branch
-
-echo "Processing complete. All commits have been processed and branches have been created."
-echo "Main branch has been reset to contain only the new commits."
+echo "Processing complete. Repository history has been rebuilt from game commit history."
