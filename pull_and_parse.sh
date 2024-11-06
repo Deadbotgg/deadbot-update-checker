@@ -8,14 +8,14 @@ if [ -z "$GITHUB_TOKEN" ]; then
     exit 1
 fi
 
+# Check if GAME_REPO is set
+if [ -z "$GAME_REPO" ]; then
+    echo "Error: GAME_REPO environment variable is not set."
+    exit 1
+fi
+
 # Change to the app directory
 cd /app
-
-# Discard any local changes
-git reset --hard
-
-# Pull the latest updates
-git pull
 
 # Run index.ts using Bun
 echo "Running parser..."
@@ -41,9 +41,9 @@ git fetch origin
 # Make sure we're on main
 git checkout main || git checkout -b main
 
-# Get current game commit hash and date
-GAME_COMMIT=$(cd /app && git rev-parse HEAD)
-COMMIT_DATE=$(cd /app && git show -s --format=%ci HEAD)
+# Get current game commit hash and date from GAME_REPO
+GAME_COMMIT=$(cd "$GAME_REPO" && git rev-parse HEAD)
+COMMIT_DATE=$(cd "$GAME_REPO" && git show -s --format=%ci HEAD)
 
 # Add all files in the output directory
 git add -A
