@@ -98,6 +98,11 @@ interface ItemValue {
   m_vecComponentItems?: string[];
 }
 
+interface GenericData {
+  m_nItemPricePerTier: number[];
+  [key: string]: unknown;
+}
+
 function formatPipeSepString(
   pipeSepString: string,
   mapFunc: (value: string) => string
@@ -155,9 +160,8 @@ export function collateItemData(outputBaseDir: string): void {
 
     const tier = getTier(itemValue.m_iItemTier);
     let cost = null;
-    console.log(tier)
     if (tier !== null) {
-      cost = genericData.m_nItemPricePerTier[parseInt(tier)];
+      cost = (genericData as GenericData).m_nItemPricePerTier[parseInt(tier)];
     }
 
     const parsedItemData: any = {
@@ -228,7 +232,7 @@ export function collateItemData(outputBaseDir: string): void {
     return;
   }
 
-  let genericData: { [s: string]: unknown } | ArrayLike<unknown>,
+  let genericData: GenericData,
     abilitiesData: Record<string, any>,
     localisationData: Record<string, any>,
     gcLocalisationData: Record<string, any>;
@@ -307,4 +311,3 @@ export function collateItemData(outputBaseDir: string): void {
     console.error('Error writing consolidated data:', error);
   }
 }
-
