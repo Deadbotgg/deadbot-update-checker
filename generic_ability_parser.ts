@@ -169,7 +169,7 @@ function convertTooltipDetails(
   const result: TooltipSection[] = [];
 
   for (const section of tooltipDetails.m_vecAbilityInfoSections) {
-    const descKey = section.m_strLocString?.replace('#', '');
+    const descKey = !!section.m_strLocString ? section.m_strLocString?.replace('#', '') : undefined;
     const convertedSection: TooltipSection = {
       description: localisationData[descKey] || descKey,
       properties: [],
