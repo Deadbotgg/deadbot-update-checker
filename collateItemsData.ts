@@ -119,6 +119,13 @@ function formatPipeSepString(
   return outputArray;
 }
 
+function snakeCase(str: string): string {
+  return str
+    .replace(/([A-Z])/g, '_$1')
+    .toLowerCase()
+    .replace(/^_/, '');
+}
+
 export function collateItemData(outputBaseDir: string): void {
   console.log('Collating item data...');
 
@@ -165,36 +172,36 @@ export function collateItemData(outputBaseDir: string): void {
     }
 
     const parsedItemData: any = {
-      Name: localisationData[key] || gcLocalisationData[key],
-      Description: '',
-      Cost: String(cost),
-      Tier: tier,
-      Activation: getAbilityActivation(itemValue.m_eAbilityActivation),
-      Slot: getSlotType(itemValue.m_eItemSlotType),
-      Components: null,
-      TargetTypes: targetTypes,
-      ShopFilters: shopFilters,
-      Disabled: isDisabled(itemValue),
+      name: localisationData[key] || gcLocalisationData[key],
+      description: '',
+      cost: String(cost),
+      tier: tier,
+      activation: getAbilityActivation(itemValue.m_eAbilityActivation),
+      slot: getSlotType(itemValue.m_eItemSlotType),
+      components: null,
+      target_types: targetTypes,
+      shop_filters: shopFilters,
+      disabled: isDisabled(itemValue),
     };
 
     for (const [attrKey, attrValue] of Object.entries(itemAbilityAttrs)) {
-      parsedItemData[attrKey] = (attrValue as { m_strValue: string }).m_strValue;
+      parsedItemData[snakeCase(attrKey)] = (attrValue as { m_strValue: string }).m_strValue;
     }
 
     // ignore description formatting for disabled items
     const description = localisationData[`${key}_desc`];
     if (!parsedItemData.Disabled) {
-      parsedItemData.Description = formatDescription(
+      parsedItemData.description = formatDescription(
         description || '',
         parsedItemData,
         KEYBIND_MAP
       );
     } else {
-      parsedItemData.Description = description;
+      parsedItemData.description = description;
     }
 
     if (itemValue.m_vecComponentItems) {
-      parsedItemData.Components = itemValue.m_vecComponentItems;
+      parsedItemData.components = itemValue.m_vecComponentItems;
       let parentName = parsedItemData.Name;
       if (parentName === null) {
         parentName = key;
