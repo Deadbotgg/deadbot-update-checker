@@ -8,6 +8,15 @@ if [ -z "$GITHUB_TOKEN" ]; then
     exit 1
 fi
 
+# Check if game data repo path is provided
+if [ -z "$1" ]; then
+    echo "Error: Game data repository path not provided"
+    echo "Usage: $0 /path/to/game/data/repo"
+    exit 1
+fi
+
+GAME_REPO="$1"
+
 # Function to clean working directory
 clean_working_dir() {
     git reset --hard
@@ -37,7 +46,7 @@ delete_all_branches() {
     git reset --hard origin/main
     git clean -fd
     
-    cd /app
+    cd "$GAME_REPO"
 }
 
 # Function to process a single commit
@@ -54,7 +63,14 @@ process_commit() {
     # Checkout the specific commit
     git checkout -f $commit_hash
     
+    # Copy game data files to app directory
+    echo "Copying game data files to app directory..."
+    cp -r "$GAME_REPO"/* /app/data/
+    
+    cd /app
+    
     # Run the parsing script
+    echo "Running parser..."
     bun run index.ts || {
         echo "Error during parsing for commit $commit_hash"
         return 1
@@ -78,7 +94,7 @@ process_commit() {
     git add -A
     git commit -m "Parsed data from game commit $commit_hash ($commit_date)" || {
         echo "No changes to commit for $commit_hash"
-        cd /app
+        cd "$GAME_REPO"
         return 0
     }
     
@@ -100,13 +116,22 @@ process_commit() {
         echo "Push to main failed for branch $branch_name, continuing..."
     }
     
-    # Return to app directory for next iteration
-    cd /app
+    # Return to game repo directory for next iteration
+    cd "$GAME_REPO"
 }
 
 # Main script execution
 
 echo "Starting full processing of all commits..."
+
+# Verify game repo exists and is a git repository
+if [ ! -d "$GAME_REPO/.git" ]; then
+    echo "Error: $GAME_REPO is not a git repository"
+    exit 1
+fi
+
+# Change to game repo directory
+cd "$GAME_REPO"
 
 # First, delete all existing branches
 delete_all_branches
