@@ -26,13 +26,10 @@ clean_working_dir() {
     git stash -u
 }
 
-# Function to clear repo data and create empty initial state
-clear_repo_data() {
-    echo "Clearing repository data..."
+# Function to reset repo to empty state
+reset_repo() {
+    echo "Resetting repository to empty state..."
     cd /output
-    
-    # Clean working directory first
-    clean_working_dir
     
     # Delete all branches except main
     git fetch origin
@@ -40,18 +37,25 @@ clear_repo_data() {
         git push origin --delete "$branch" || true
     done
     
-    # Checkout main
-    git checkout main
+    # Create new orphan branch (no history)
+    git checkout --orphan temp_main
     
-    # Remove all files (except .git)
+    # Remove all files
     rm -rf *
     
     # Create empty initial commit
     git add -A
-    git commit -m "Initial empty state" || true
+    git commit -m "Initial empty state"
     
-    # Force push to reset main branch to this empty state
-    git push -f origin main
+    # Force push to main
+    git push -f origin temp_main:main
+    
+    # Checkout main and reset to our new history
+    git checkout main
+    git reset --hard origin/main
+    
+    # Clean up temporary branch
+    git branch -D temp_main
     
     cd "$GAME_REPO"
 }
@@ -75,7 +79,6 @@ copy_game_data() {
 process_commit() {
     local commit_hash=$1
     local commit_date=$(git show -s --format=%ci $commit_hash)
-    local branch_name=$(echo $commit_date | sed 's/ /-/g' | sed 's/:/-/g')
     
     echo "Processing commit $commit_hash from date $commit_date"
     
@@ -100,17 +103,10 @@ process_commit() {
     # Change to output directory and commit changes
     cd /output
     
-    # Clean working directory before branch operations
-    clean_working_dir
-    
-    # Make sure we're on main first
-    git fetch origin main
+    # Make sure we're on main
     git checkout main
     
-    # Create and checkout new branch
-    git checkout -b $branch_name
-    
-    # Add and commit changes
+    # Add and commit changes directly to main
     git add -A
     git commit -m "Parsed data from game commit $commit_hash ($commit_date)" || {
         echo "No changes to commit for $commit_hash"
@@ -118,12 +114,7 @@ process_commit() {
         return 0
     }
     
-    # Push the new branch
-    git push -u origin $branch_name
-    
-    # Switch to main and merge
-    git checkout main
-    git merge --no-ff $branch_name -m "Merge branch '$branch_name' into main"
+    # Push changes to main
     git push origin main
     
     # Return to game repo directory for next iteration
@@ -143,8 +134,8 @@ fi
 # Change to game repo directory
 cd "$GAME_REPO"
 
-# First, clear all data from the repo
-clear_repo_data
+# First, reset repo to empty state
+reset_repo
 
 # Get all commits in reverse chronological order
 commits=$(git log --reverse --format="%H")
