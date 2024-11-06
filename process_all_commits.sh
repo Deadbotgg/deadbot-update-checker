@@ -49,6 +49,21 @@ delete_all_branches() {
     cd "$GAME_REPO"
 }
 
+# Function to copy game data files
+copy_game_data() {
+    echo "Setting up data directory..."
+    # Create data directory if it doesn't exist
+    mkdir -p /app/data
+    
+    echo "Copying .vdata files..."
+    # Find and copy all .vdata files from game repo to app data directory
+    find "$GAME_REPO/game/citadel" -name "*.vdata" -exec cp {} /app/data/ \;
+    
+    # List copied files for verification
+    echo "Copied files:"
+    ls -la /app/data/
+}
+
 # Function to process a single commit
 process_commit() {
     local commit_hash=$1
@@ -63,9 +78,8 @@ process_commit() {
     # Checkout the specific commit
     git checkout -f $commit_hash
     
-    # Copy game data files to app directory
-    echo "Copying game data files to app directory..."
-    cp -r "$GAME_REPO"/* /app/data/
+    # Copy game data files
+    copy_game_data
     
     cd /app
     
