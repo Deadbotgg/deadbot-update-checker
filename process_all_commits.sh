@@ -115,23 +115,35 @@ process_commit() {
     # Push the new branch
     git push -u origin $branch_name
     
-    # Switch to main and merge
+    # Return to game repo directory for next iteration
+    cd "$GAME_REPO"
+}
+
+# Function to reset main branch with only our new commits
+reset_main_branch() {
+    echo "Resetting main branch to contain only our new commits..."
+    cd /output
+    
+    # Create a temporary branch
+    git checkout --orphan temp_main
+    
+    # Add all files
+    git add -A
+    
+    # Create initial commit
+    git commit -m "Initial commit - Reset main branch"
+    
+    # Force push to main
+    git push -f origin temp_main:main
+    
+    # Checkout main and reset to our new history
     git checkout main
     git reset --hard origin/main
     
-    # Try to merge, but if it fails, just continue
-    git merge --no-ff $branch_name -m "Merge branch '$branch_name' into main" || {
-        echo "Merge failed for branch $branch_name, continuing..."
-        git merge --abort
-    }
+    # Clean up temporary branch
+    git branch -D temp_main
     
-    # Try to push main, but if it fails, just continue
-    git push origin main || {
-        echo "Push to main failed for branch $branch_name, continuing..."
-    }
-    
-    # Return to game repo directory for next iteration
-    cd "$GAME_REPO"
+    echo "Main branch has been reset successfully."
 }
 
 # Main script execution
@@ -161,4 +173,8 @@ for commit in $commits; do
     }
 done
 
-echo "Processing complete. All commits have been processed and data pushed to respective branches."
+# Reset main branch to contain only our new commits
+reset_main_branch
+
+echo "Processing complete. All commits have been processed and branches have been created."
+echo "Main branch has been reset to contain only the new commits."
