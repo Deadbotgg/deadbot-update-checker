@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { collateHeroData } from './collateHeroData';
 import { collateItemData } from './collateItemsData';
-import { parseLocalisation } from './parseLocalisation';
+import { combineLocalisations, parseLocalisation } from './parseLocalisation';
 
 dotenv.config();
 
@@ -239,3 +239,5 @@ collateHeroData(
 collateItemData(
   path.join(steamdbRepoPath, process.env.OUTPUT_PATH || '../../output')
 );
+
+combineLocalisations();

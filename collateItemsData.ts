@@ -17,8 +17,8 @@ export interface ItemData {
   tier: string | null;
   activation: string;
   slot: string | null;
-  components: string[] | null;
-  componentsOf: string[] | null;
+  components: { key: string; name: string }[] | null | undefined;
+  componentsOf: { key: string; name: string }[] | null | undefined;
   target_types: string[] | null;
   shop_filters: string[] | null;
   tooltip: { [key: string]: TooltipSection[] };
@@ -36,7 +36,13 @@ export interface ItemData {
   ability_resource_cost: number;
   tech_power: number;
   weapon_power: number;
-  [key: string]: string | number | boolean | string[] | null | { [key: string]: TooltipSection[] };
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | string[]
+    | null
+    | { [key: string]: TooltipSection[] };
 }
 
 interface AbilityProperty {
@@ -47,9 +53,27 @@ interface AbilityProperty {
 }
 
 interface TooltipSection {
-  ability_properties: { [key: string]: { value: string; style: string | null; is_negative: boolean } };
-  elevated_ability_properties: { [key: string]: { value: string; style: string | null; is_negative: boolean } };
-  important_ability_properties: { [key: string]: { value: string; style: string | null; is_conditional: boolean } };
+  ability_properties: {
+    [key: string]: {
+      value: string;
+      style: string | null;
+      is_negative: boolean;
+    };
+  };
+  elevated_ability_properties: {
+    [key: string]: {
+      value: string;
+      style: string | null;
+      is_negative: boolean;
+    };
+  };
+  important_ability_properties: {
+    [key: string]: {
+      value: string;
+      style: string | null;
+      is_conditional: boolean;
+    };
+  };
   description: string;
 }
 
@@ -104,23 +128,29 @@ function snakeCase(str: string): string {
     .replace(/^_/, '');
 }
 
-function parseTooltipSections(itemValue: ItemValue, localisationData: any): { [key: string]: TooltipSection[] } {
+function parseTooltipSections(
+  itemValue: ItemValue,
+  localisationData: any
+): { [key: string]: TooltipSection[] } {
   const tooltipSections: { [key: string]: TooltipSection[] } = {};
   const abilityProps = itemValue.m_mapAbilityProperties;
 
   if (itemValue.m_vecTooltipSectionInfo) {
     for (const section of itemValue.m_vecTooltipSectionInfo) {
       // Handle case where section type is undefined
-      const sectionType = section.m_eAbilitySectionType ? section.m_eAbilitySectionType.replace('EArea_', '') : 'Default';
+      const sectionType = section.m_eAbilitySectionType
+        ? section.m_eAbilitySectionType.replace('EArea_', '')
+        : 'Default';
       tooltipSections[sectionType] = [];
 
       for (const attr of section.m_vecSectionAttributes) {
-        const descriptionKey = String(attr.m_strLocString)?.replace('#', '') || '';
+        const descriptionKey =
+          String(attr.m_strLocString)?.replace('#', '') || '';
         const tooltipSection: TooltipSection = {
           ability_properties: {},
           elevated_ability_properties: {},
           important_ability_properties: {},
-          description: unescapeString(localisationData[descriptionKey]) || ''
+          description: unescapeString(localisationData[descriptionKey]) || '',
         };
 
         // Regular ability properties
@@ -131,7 +161,7 @@ function parseTooltipSections(itemValue: ItemValue, localisationData: any): { [k
               tooltipSection.ability_properties[snakeCase(prop)] = {
                 value: abilityProp.m_strValue,
                 style: abilityProp.m_strCSSClass || null,
-                is_negative: abilityProp.m_bIsNegativeAttribute || false
+                is_negative: abilityProp.m_bIsNegativeAttribute || false,
               };
             }
           }
@@ -145,7 +175,7 @@ function parseTooltipSections(itemValue: ItemValue, localisationData: any): { [k
               tooltipSection.elevated_ability_properties[snakeCase(prop)] = {
                 value: abilityProp.m_strValue,
                 style: abilityProp.m_strCSSClass || null,
-                is_negative: abilityProp.m_bIsNegativeAttribute || false
+                is_negative: abilityProp.m_bIsNegativeAttribute || false,
               };
             }
           }
@@ -153,13 +183,17 @@ function parseTooltipSections(itemValue: ItemValue, localisationData: any): { [k
 
         // Important ability properties
         if (attr.m_vecImportantAbilityProperties) {
-          for (const { m_strImportantProperty: prop } of attr.m_vecImportantAbilityProperties) {
+          for (const {
+            m_strImportantProperty: prop,
+          } of attr.m_vecImportantAbilityProperties) {
             const abilityProp = abilityProps[prop];
             if (abilityProp) {
               tooltipSection.important_ability_properties[snakeCase(prop)] = {
                 value: abilityProp.m_strValue,
                 style: abilityProp.m_strCSSClass || null,
-                is_conditional: (abilityProp.m_UsageFlags || '').includes('APUsageFlag_ModifierConditional')
+                is_conditional: (abilityProp.m_UsageFlags || '').includes(
+                  'APUsageFlag_ModifierConditional'
+                ),
               };
             }
           }
@@ -181,7 +215,13 @@ function unescapeString(str: string): string {
   }
 }
 
-function parseItem(key: string, abilitiesData: Record<string, any>, genericData: GenericData, localisationData: Record<string, any>, gcLocalisationData: Record<string, any>): ItemData {
+function parseItem(
+  key: string,
+  abilitiesData: Record<string, any>,
+  genericData: GenericData,
+  localisationData: Record<string, any>,
+  gcLocalisationData: Record<string, any>
+): ItemData {
   const ability = abilitiesData[key];
   const itemValue = ability as ItemValue;
   const itemAbilityAttrs = itemValue.m_mapAbilityProperties;
@@ -198,10 +238,7 @@ function parseItem(key: string, abilitiesData: Record<string, any>, genericData:
   // Assign shop filters
   let shopFilters = null;
   if (itemValue.m_eShopFilters) {
-    shopFilters = formatPipeSepString(
-      itemValue.m_eShopFilters,
-      getShopFilter
-    );
+    shopFilters = formatPipeSepString(itemValue.m_eShopFilters, getShopFilter);
   }
 
   const tier = getTier(itemValue.m_iItemTier);
@@ -216,34 +253,68 @@ function parseItem(key: string, abilitiesData: Record<string, any>, genericData:
 
   const parsedItemData: ItemData = {
     name: localisationData[key] || gcLocalisationData[key],
-    description: !isDisabled(itemValue) ? formatDescription(description || '', {}, KEYBIND_MAP) : description,
+    description: !isDisabled(itemValue)
+      ? formatDescription(description || '', {}, KEYBIND_MAP)
+      : description,
     cost: String(cost),
     tier: tier,
     activation: getAbilityActivation(itemValue.m_eAbilityActivation),
     slot: getSlotType(itemValue.m_eItemSlotType),
-    components: itemValue.m_vecComponentItems || null,
+    components:
+      itemValue.m_vecComponentItems?.map((component) => ({
+        key: component,
+        name: localisationData[component] || gcLocalisationData[component],
+      })) || null,
     target_types: targetTypes,
     shop_filters: shopFilters,
     tooltip: tooltipSections,
     disabled: isDisabled(itemValue),
-    ability_cooldown: parseFloat(itemAbilityAttrs.AbilityCooldown?.m_strValue || '0'),
-    ability_duration: parseFloat(itemAbilityAttrs.AbilityDuration?.m_strValue || '0'),
-    ability_cast_range: parseFloat(itemAbilityAttrs.AbilityCastRange?.m_strValue || '0'),
-    ability_unit_target_limit: parseFloat(itemAbilityAttrs.AbilityUnitTargetLimit?.m_strValue || '0'),
-    ability_cast_delay: parseFloat(itemAbilityAttrs.AbilityCastDelay?.m_strValue || '0'),
-    ability_channel_time: parseFloat(itemAbilityAttrs.AbilityChannelTime?.m_strValue || '0'),
-    ability_post_cast_duration: parseFloat(itemAbilityAttrs.AbilityPostCastDuration?.m_strValue || '0'),
-    ability_charges: parseFloat(itemAbilityAttrs.AbilityCharges?.m_strValue || '0'),
-    ability_cooldown_between_charge: parseFloat(itemAbilityAttrs.AbilityCooldownBetweenCharge?.m_strValue || '0'),
-    channel_move_speed: parseFloat(itemAbilityAttrs.ChannelMoveSpeed?.m_strValue || '0'),
-    ability_resource_cost: parseFloat(itemAbilityAttrs.AbilityResourceCost?.m_strValue || '0'),
+    ability_cooldown: parseFloat(
+      itemAbilityAttrs.AbilityCooldown?.m_strValue || '0'
+    ),
+    ability_duration: parseFloat(
+      itemAbilityAttrs.AbilityDuration?.m_strValue || '0'
+    ),
+    ability_cast_range: parseFloat(
+      itemAbilityAttrs.AbilityCastRange?.m_strValue || '0'
+    ),
+    ability_unit_target_limit: parseFloat(
+      itemAbilityAttrs.AbilityUnitTargetLimit?.m_strValue || '0'
+    ),
+    ability_cast_delay: parseFloat(
+      itemAbilityAttrs.AbilityCastDelay?.m_strValue || '0'
+    ),
+    ability_channel_time: parseFloat(
+      itemAbilityAttrs.AbilityChannelTime?.m_strValue || '0'
+    ),
+    ability_post_cast_duration: parseFloat(
+      itemAbilityAttrs.AbilityPostCastDuration?.m_strValue || '0'
+    ),
+    ability_charges: parseFloat(
+      itemAbilityAttrs.AbilityCharges?.m_strValue || '0'
+    ),
+    ability_cooldown_between_charge: parseFloat(
+      itemAbilityAttrs.AbilityCooldownBetweenCharge?.m_strValue || '0'
+    ),
+    channel_move_speed: parseFloat(
+      itemAbilityAttrs.ChannelMoveSpeed?.m_strValue || '0'
+    ),
+    ability_resource_cost: parseFloat(
+      itemAbilityAttrs.AbilityResourceCost?.m_strValue || '0'
+    ),
     tech_power: parseFloat(itemAbilityAttrs.TechPower?.m_strValue || '0'),
-    weapon_power: parseFloat(itemAbilityAttrs.WeaponPower?.m_strValue || '0')
+    weapon_power: parseFloat(itemAbilityAttrs.WeaponPower?.m_strValue || '0'),
   };
 
   // Add any additional ability properties as snake_case
-  for (const [attrKey, attrValue] of Object.entries(itemAbilityAttrs) as [string, AbilityProperty][]) {
-    if (!attrKey.startsWith('Ability') && !['TechPower', 'WeaponPower', 'ChannelMoveSpeed'].includes(attrKey)) {
+  for (const [attrKey, attrValue] of Object.entries(itemAbilityAttrs) as [
+    string,
+    AbilityProperty
+  ][]) {
+    if (
+      !attrKey.startsWith('Ability') &&
+      !['TechPower', 'WeaponPower', 'ChannelMoveSpeed'].includes(attrKey)
+    ) {
       const snakeCaseKey = snakeCase(attrKey);
       parsedItemData[snakeCaseKey] = parseFloat(attrValue.m_strValue);
     }
@@ -260,7 +331,9 @@ function isDisabled(item: ItemValue): boolean {
     } else if (flag === false || flag === 'false' || flag === 0) {
       return false;
     } else {
-      console.warn(`Unexpected value for m_bDisabled: ${flag}, treating as false`);
+      console.warn(
+        `Unexpected value for m_bDisabled: ${flag}, treating as false`
+      );
       return false;
     }
   }
@@ -358,7 +431,13 @@ export function collateItemData(outputBaseDir: string): void {
     }
 
     try {
-      consolidatedData[itemName] = parseItem(itemName, abilitiesData, genericData, localisationData, gcLocalisationData);
+      consolidatedData[itemName] = parseItem(
+        itemName,
+        abilitiesData,
+        genericData,
+        localisationData,
+        gcLocalisationData
+      );
     } catch (e) {
       console.error(`[ERROR] Failed to parse item ${itemName}:`, e);
     }
@@ -367,13 +446,13 @@ export function collateItemData(outputBaseDir: string): void {
   for (const [itemName, itemData] of Object.entries(consolidatedData)) {
     if (itemData.components) {
       itemData.componentsOf = [];
-      for(const item of itemData.components) {
-        const componentOf = consolidatedData[item];
+      for (const item of itemData.components) {
+        const componentOf = consolidatedData[item.key];
         if (componentOf) {
           if (!componentOf.componentsOf) {
             componentOf.componentsOf = [];
           }
-          componentOf.componentsOf.push(itemName);
+          componentOf.componentsOf.push({ key: itemName, name: itemData.name || '' });
         }
       }
     }
