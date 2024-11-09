@@ -59,8 +59,8 @@ function extractLanguage(filename: string): string {
 }
 
 // New function to combine JSON localization files grouped by language
-export function combineLocalisations() {
-    const baseDir = path.join('data', 'output', 'localisation');
+export function combineLocalisations(dir: string) {
+    const baseDir = path.join(dir, 'localisation');
     const localizationsByLanguage: { [key: string]: LocalisationData } = {};
 
     // Get all JSON files in the directory

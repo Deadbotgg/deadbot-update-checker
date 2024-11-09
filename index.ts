@@ -290,4 +290,4 @@ collateItemData(
   path.join(steamdbRepoPath, process.env.OUTPUT_PATH || '../../output')
 );
 
-combineLocalisations();
+combineLocalisations(steamdbRepoPath);
