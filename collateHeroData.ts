@@ -206,7 +206,7 @@ export function collateHeroData(outputBaseDir: string): void {
 
   // Process heroes
   for (const [heroName, heroData] of Object.entries(heroesData)) {
-    if (!heroName.startsWith('hero_')) continue;
+    if (!heroName.startsWith('hero_') && !heroName.endsWith("base") && !heroName.endsWith("dummy")) continue;
 
     const cleanHeroName = heroName.replace('hero_', '');
 

@@ -35,6 +35,7 @@ function parseSteamInf(steamdbRepoPath: string): { clientVersion: string; versio
 
     // Write version info to a file that can be read by the commit script
     const versionInfo = { clientVersion, versionDate };
+    console.log('Version info:', versionInfo);
     const outputBaseDir = path.join(
       steamdbRepoPath,
       process.env.OUTPUT_PATH || '../../output'
@@ -258,9 +259,7 @@ function processFiles(steamdbRepoPath: string) {
     }
 
     const outputPath = path.join(outputDir, `${name}.json`);
-    console.log(`Writing output to: ${outputPath}`);
     fs.writeFileSync(outputPath, JSON.stringify(result, null, 2));
-    console.log(`Parsed data written to: ${outputPath}`);
   }
 
   vdataFiles.forEach((file) => {
