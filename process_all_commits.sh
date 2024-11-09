@@ -122,11 +122,11 @@ process_commit() {
     if [ -f "version_info.json" ]; then
         CLIENT_VERSION=$(jq -r '.clientVersion' version_info.json)
         VERSION_DATE=$(jq -r '.versionDate' version_info.json)
-        COMMIT_MESSAGE="Parsed data from game version $CLIENT_VERSION ($VERSION_DATE)"
+        COMMIT_MESSAGE="$CLIENT_VERSION ($VERSION_DATE)"
     else
-        CLIENT_VERSION=$(git show -s --format=%s $commit_hash |  cut -d'|' -f1)
+        CLIENT_VERSION=$(git show -s --format=%s $commit_hash | grep -oP '^\d(?=\|)')
         # Fallback to git commit info if version_info.json doesn't exist
-        COMMIT_MESSAGE="Parsed data from game commit $CLIENT_VERSION ($commit_date)"
+        COMMIT_MESSAGE="$CLIENT_VERSION ($commit_date)"
     fi
     
     # Add and commit changes directly to main
