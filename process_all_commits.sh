@@ -91,6 +91,7 @@ copy_game_data() {
 process_commit() {
     local commit_hash=$1
     local commit_date=$(git show -s --format=%ci $commit_hash)
+    local clientVersion=$(git show -s --format=%s $commit_hash | cut -d'|' -f1)
     
     echo "Processing commit $commit_hash from date $commit_date"
     
@@ -124,7 +125,7 @@ process_commit() {
         VERSION_DATE=$(jq -r '.versionDate' version_info.json)
         COMMIT_MESSAGE="$CLIENT_VERSION ($VERSION_DATE)"
     else
-        CLIENT_VERSION=$(git show -s --format=%s $commit_hash | grep -oP '^\d(?=\|)')
+        CLIENT_VERSION=$(git show -s --format=%s $commit_hash | cut -d'|' -f1)
         # Fallback to git commit info if version_info.json doesn't exist
         COMMIT_MESSAGE="$CLIENT_VERSION ($commit_date)"
     fi
