@@ -41,16 +41,23 @@ git fetch origin
 # Make sure we're on main
 git checkout main || git checkout -b main
 
-# Get current game commit hash and date from GAME_REPO
+# Debug: Print the commit message
+echo "Debug: Commit message from git show:"
+(cd "$GAME_REPO" && git show -s --format=%s HEAD)
+
+# Get current game commit info
 GAME_COMMIT=$(cd "$GAME_REPO" && git rev-parse HEAD)
 VERSION=$(cd "$GAME_REPO" && git show -s --format=%s HEAD | sed 's/ |.*$//')
 COMMIT_DATE=$(cd "$GAME_REPO" && git show -s --format=%ci HEAD)
 
+# Debug: Print extracted version
+echo "Debug: Extracted version: $VERSION"
+
 # Add all files in the output directory
 git add -A
 
-# Commit the changes
-git commit -m "$VERSION ($COMMIT_DATE)" || {
+# Commit the changes with just the version number
+git commit -m "$VERSION" || {
     echo "No changes to commit"
     exit 0
 }
