@@ -26,15 +26,23 @@ git fetch origin
 # Make sure we're on main
 git checkout main || git checkout -b main
 
-# Get current game commit hash and date
-GAME_COMMIT=$(cd /app && git rev-parse HEAD)
-COMMIT_DATE=$(cd /app && git show -s --format=%ci HEAD)
+# Get version info from version_info.json if it exists
+if [ -f "version_info.json" ]; then
+    CLIENT_VERSION=$(jq -r '.clientVersion' version_info.json)
+    VERSION_DATE=$(jq -r '.versionDate' version_info.json)
+    COMMIT_MESSAGE="Parsed data from game version $CLIENT_VERSION ($VERSION_DATE)"
+else
+    # Fallback to git commit info if version_info.json doesn't exist
+    GAME_COMMIT=$(cd /app && git rev-parse HEAD)
+    COMMIT_DATE=$(cd /app && git show -s --format=%ci HEAD)
+    COMMIT_MESSAGE="Parsed data from game commit $GAME_COMMIT ($COMMIT_DATE)"
+fi
 
 # Add all files in the output directory
 git add -A
 
 # Commit the changes
-git commit -m "Parsed data from game commit $GAME_COMMIT ($COMMIT_DATE)" || {
+git commit -m "$COMMIT_MESSAGE" || {
     echo "No changes to commit"
     exit 0
 }

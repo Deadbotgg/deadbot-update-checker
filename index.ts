@@ -7,6 +7,50 @@ import { combineLocalisations, parseLocalisation } from './parseLocalisation';
 
 dotenv.config();
 
+function parseSteamInf(steamdbRepoPath: string): { clientVersion: string; versionDate: string } | null {
+  try {
+    const steamInfPath = path.join(steamdbRepoPath, 'steam.inf');
+    if (!fs.existsSync(steamInfPath)) {
+      console.error('steam.inf not found');
+      return null;
+    }
+
+    const content = fs.readFileSync(steamInfPath, 'utf-8');
+    const lines = content.split('\n');
+    let clientVersion = '';
+    let versionDate = '';
+
+    for (const line of lines) {
+      if (line.startsWith('ClientVersion=')) {
+        clientVersion = line.split('=')[1].trim();
+      } else if (line.startsWith('VersionDate=')) {
+        versionDate = line.split('=')[1].trim();
+      }
+    }
+
+    if (!clientVersion || !versionDate) {
+      console.error('Could not find ClientVersion or VersionDate in steam.inf');
+      return null;
+    }
+
+    // Write version info to a file that can be read by the commit script
+    const versionInfo = { clientVersion, versionDate };
+    const outputBaseDir = path.join(
+      steamdbRepoPath,
+      process.env.OUTPUT_PATH || '../../output'
+    );
+    fs.writeFileSync(
+      path.join(outputBaseDir, 'version_info.json'),
+      JSON.stringify(versionInfo, null, 2)
+    );
+
+    return versionInfo;
+  } catch (error) {
+    console.error('Error parsing steam.inf:', error);
+    return null;
+  }
+}
+
 export function parseVData(lines: string[]): any {
   let stack: any[] = [];
   let current: any = {};
@@ -174,6 +218,12 @@ function processFiles(steamdbRepoPath: string) {
   if (!fs.existsSync(steamdbRepoPath)) {
     console.error(`Error: Directory ${steamdbRepoPath} does not exist.`);
     return;
+  }
+
+  // Parse steam.inf first
+  const versionInfo = parseSteamInf(steamdbRepoPath);
+  if (!versionInfo) {
+    console.warn('Could not parse steam.inf, continuing with file processing...');
   }
 
   const vdataFiles = getVDataFiles(steamdbRepoPath);

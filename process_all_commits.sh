@@ -77,6 +77,11 @@ copy_game_data() {
     # Find and copy all .vdata files from game repo to app data directory
     find "$GAME_REPO/game/citadel" -name "*.vdata" -exec cp {} /app/data/ \;
     
+    # Copy steam.inf if it exists
+    if [ -f "$GAME_REPO/steam.inf" ]; then
+        cp "$GAME_REPO/steam.inf" /app/data/
+    fi
+    
     # List copied files for verification
     echo "Copied files:"
     ls -la /app/data/
@@ -113,9 +118,19 @@ process_commit() {
     # Make sure we're on main
     git checkout main
     
+    # Get version info from version_info.json if it exists
+    if [ -f "version_info.json" ]; then
+        CLIENT_VERSION=$(jq -r '.clientVersion' version_info.json)
+        VERSION_DATE=$(jq -r '.versionDate' version_info.json)
+        COMMIT_MESSAGE="Parsed data from game version $CLIENT_VERSION ($VERSION_DATE)"
+    else
+        # Fallback to git commit info if version_info.json doesn't exist
+        COMMIT_MESSAGE="Parsed data from game commit $commit_hash ($commit_date)"
+    fi
+    
     # Add and commit changes directly to main
     git add -A
-    git commit -m "Parsed data from game commit $commit_hash ($commit_date)" || {
+    git commit -m "$COMMIT_MESSAGE" || {
         echo "No changes to commit for $commit_hash"
         cd "$GAME_REPO"
         return 0
