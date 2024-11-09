@@ -55,21 +55,21 @@ interface AbilityProperty {
 interface TooltipSection {
   ability_properties: {
     [key: string]: {
-      value: string;
+      value: number;
       style: string | null;
       is_negative: boolean;
     };
   };
   elevated_ability_properties: {
     [key: string]: {
-      value: string;
+      value: number;
       style: string | null;
       is_negative: boolean;
     };
   };
   important_ability_properties: {
     [key: string]: {
-      value: string;
+      value: number;
       style: string | null;
       is_conditional: boolean;
     };
@@ -159,7 +159,7 @@ function parseTooltipSections(
             const abilityProp = abilityProps[prop];
             if (abilityProp) {
               tooltipSection.ability_properties[snakeCase(prop)] = {
-                value: abilityProp.m_strValue,
+                value: parseInt(abilityProp.m_strValue, 10),
                 style: abilityProp.m_strCSSClass || null,
                 is_negative: abilityProp.m_bIsNegativeAttribute || false,
               };
@@ -173,7 +173,7 @@ function parseTooltipSections(
             const abilityProp = abilityProps[prop];
             if (abilityProp) {
               tooltipSection.elevated_ability_properties[snakeCase(prop)] = {
-                value: abilityProp.m_strValue,
+                value: parseInt(abilityProp.m_strValue, 10),
                 style: abilityProp.m_strCSSClass || null,
                 is_negative: abilityProp.m_bIsNegativeAttribute || false,
               };
@@ -189,7 +189,7 @@ function parseTooltipSections(
             const abilityProp = abilityProps[prop];
             if (abilityProp) {
               tooltipSection.important_ability_properties[snakeCase(prop)] = {
-                value: abilityProp.m_strValue,
+                value: parseInt(abilityProp.m_strValue, 10),
                 style: abilityProp.m_strCSSClass || null,
                 is_conditional: (abilityProp.m_UsageFlags || '').includes(
                   'APUsageFlag_ModifierConditional'
@@ -249,10 +249,13 @@ function parseItem(
 
   const rawDescription = localisationData[`${key}_desc`];
   const description = rawDescription ? unescapeString(rawDescription) : null;
-  const tooltipSections = parseTooltipSections(itemValue, localisationData);
+  const tooltipSections = parseTooltipSections(itemValue, {
+    ...localisationData,
+    ...gcLocalisationData,
+  });
 
   const parsedItemData: ItemData = {
-    name: localisationData[key] || gcLocalisationData[key],
+    name: gcLocalisationData[key] || localisationData[key],
     description: !isDisabled(itemValue)
       ? formatDescription(description || '', {}, KEYBIND_MAP)
       : description,
@@ -263,7 +266,7 @@ function parseItem(
     components:
       itemValue.m_vecComponentItems?.map((component) => ({
         key: component,
-        name: localisationData[component] || gcLocalisationData[component],
+        name: gcLocalisationData[component] || localisationData[component],
       })) || null,
     target_types: targetTypes,
     shop_filters: shopFilters,
@@ -452,7 +455,10 @@ export function collateItemData(outputBaseDir: string): void {
           if (!componentOf.componentsOf) {
             componentOf.componentsOf = [];
           }
-          componentOf.componentsOf.push({ key: itemName, name: itemData.name || '' });
+          componentOf.componentsOf.push({
+            key: itemName,
+            name: itemData.name || '',
+          });
         }
       }
     }

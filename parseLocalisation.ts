@@ -48,29 +48,59 @@ function readJsonFile(filePath: string): any {
     }
 }
 
-// New function to combine JSON localization files
+// Function to extract language from filename
+function extractLanguage(filename: string): string {
+    // Remove the .json extension
+    const nameWithoutExt = filename.replace('.json', '');
+    
+    // Split by underscore and get the last part which should be the language
+    const parts = nameWithoutExt.split('_');
+    return parts[parts.length - 1];
+}
+
+// New function to combine JSON localization files grouped by language
 export function combineLocalisations() {
     const baseDir = path.join('data', 'output', 'localisation');
-    let combinedLocalization = {};
+    const localizationsByLanguage: { [key: string]: LocalisationData } = {};
 
     // Get all JSON files in the directory
     const files = fs.readdirSync(baseDir)
         .filter(file => file.endsWith('.json'));
-        console.log('Files:', files);
+    console.log('Files:', files);
 
-    // Read and merge each file
+    // Read and group files by language
     for (const file of files) {
         const filePath = path.join(baseDir, file);
         console.log('Processing:', file);
+        
+        // Extract language from filename
+        const language = extractLanguage(file);
+        
+        // Initialize language group if it doesn't exist
+        if (!localizationsByLanguage[language]) {
+            localizationsByLanguage[language] = {};
+        }
+
+        // Read and merge file content into appropriate language group
         const fileContent = readJsonFile(filePath);
-        combinedLocalization = { ...combinedLocalization, ...fileContent };
+        localizationsByLanguage[language] = { 
+            ...localizationsByLanguage[language], 
+            ...fileContent 
+        };
     }
 
-    // Write combined localization to a new file
-    const outputPath = path.join(baseDir, 'english.json');
-    fs.writeFileSync(outputPath, JSON.stringify(combinedLocalization, null, 2), 'utf8');
-    console.log('Combined localization file created at:', outputPath);
-    
-    return combinedLocalization;
-}
+    // Create output directory if it doesn't exist
+    const outputDir = path.join(baseDir, 'locale');
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir);
+    }
 
+    // Write combined files for each language
+    for (const [language, content] of Object.entries(localizationsByLanguage)) {
+        const outputPath = path.join(outputDir, `${language}.json`);
+        fs.writeFileSync(outputPath, JSON.stringify(content, null, 2), 'utf8');
+        console.log(`Combined ${language} localization file created at:`, outputPath);
+    }
+
+    return localizationsByLanguage;
+}
