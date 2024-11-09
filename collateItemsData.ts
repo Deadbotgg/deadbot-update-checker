@@ -133,8 +133,10 @@ function snakeCase(str: string): string {
 function parseImagePath(imagePath: string | undefined): string | null {
   if (!imagePath) return null;
   
-  // Remove the panorama and file prefix
-  const cleanPath = imagePath.replace(/^panorama:file:\/\/\{images\}\//, '');
+  // Remove the panorama prefix, file prefix, and any quotes
+  const cleanPath = imagePath
+    .replace(/^panorama:"?file:\/\/\{images\}\//, '')
+    .replace(/"$/, '');
   
   // Split the path and filename
   const lastSlashIndex = cleanPath.lastIndexOf('/');
