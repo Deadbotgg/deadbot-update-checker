@@ -1,9 +1,6 @@
 # Use Debian-based Node image for glibc compatibility
 FROM node:20-slim
 
-# Install Bun
-RUN curl -fsSL https://bun.sh/install | bash
-
 # Install Git, Bash, and other necessary utilities
 RUN apt-get update && apt-get install -y \
     git \
@@ -11,13 +8,16 @@ RUN apt-get update && apt-get install -y \
     libstdc++6 \
     libicu72 \
     cron \
+    curl \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Bun
+RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash \
+    && ln -s /usr/local/bin/bun /usr/local/bin/bunx
 
 # Set the working directory inside the container
 WORKDIR /app
-
-# Add Bun to PATH
-ENV PATH="/root/.bun/bin:${PATH}"
 
 # Copy package files and install dependencies
 COPY package.json bun.lockb ./
@@ -49,9 +49,4 @@ RUN crontab /etc/cron.d/fetch-cron
 RUN touch /var/log/fetch.log /var/log/cron.log && chmod 666 /var/log/fetch.log /var/log/cron.log
 
 # Start cron and run initial fetch
-CMD service cron start && \
-    echo "Starting cron daemon..." && \
-    echo "Running initial fetch..." && \
-    /bin/bash /app/fetch.sh && \
-    echo "Initial fetch completed. Tailing logs..." && \
-    tail -f /var/log/fetch.log /var/log/cron.log
+CMD ["bash", "-c", "service cron start && echo 'Starting cron daemon...' && echo 'Running initial fetch...' && /bin/bash /app/fetch.sh && echo 'Initial fetch completed. Tailing logs...' && tail -f /var/log/fetch.log /var/log/cron.log"]
