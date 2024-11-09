@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     unzip \
     wget \
+    rsync \
+    optipng \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Bun
@@ -27,8 +29,18 @@ RUN bun install --frozen-lockfile
 # Copy source code
 COPY . .
 
-# Create directories for scripts and repo
-RUN mkdir -p /app/repo
+# Create necessary directories
+RUN mkdir -p /app/repo \
+    /app/depots/game \
+    /app/svgs \
+    /app/videos \
+    /output/videos \
+    /output/images \
+    /output/images/hud \
+    /output/images/heroes \
+    /output/images/abilities \
+    /output/images/maps \
+    /output/images/ranks
 
 # Ensure scripts use LF line endings
 RUN dos2unix /app/fetch.sh /app/pull_and_parse.sh /app/commit_parsed_data.sh /app/process_all_commits.sh /app/extract_game_data.sh
