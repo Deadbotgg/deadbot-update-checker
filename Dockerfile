@@ -2,7 +2,7 @@
 FROM oven/bun:1-alpine
 
 # Install Git, Bash, and other necessary utilities
-RUN apk add --no-cache git bash dos2unix libstdc++6
+RUN apk add --no-cache git bash dos2unix libstdc++
 
 # Set the working directory inside the container
 WORKDIR /app
