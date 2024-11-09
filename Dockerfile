@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash \
-    && ln -s /usr/local/bin/bun /usr/local/bin/bunx
+    && ln -sf /usr/local/bin/bun /usr/local/bin/bunx
 
 # Set the working directory inside the container
 WORKDIR /app
