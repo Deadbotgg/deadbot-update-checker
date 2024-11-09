@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     cron \
     curl \
     unzip \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Bun
