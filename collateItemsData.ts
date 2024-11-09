@@ -10,6 +10,12 @@ import {
 } from './utils/maps';
 import { formatDescription } from './utils/stringUtils';
 
+interface ItemComponent {
+  key: string;
+  name: string;
+  image: string | null;
+}
+
 export interface ItemData {
   name: string | null;
   description: string | null;
@@ -17,8 +23,9 @@ export interface ItemData {
   tier: string | null;
   activation: string;
   slot: string | null;
-  components: { key: string; name: string }[] | null | undefined;
-  componentsOf: { key: string; name: string }[] | null | undefined;
+  image: string | null;
+  components: ItemComponent[] | null;
+  componentsOf: ItemComponent[] | null;
   target_types: string[] | null;
   shop_filters: string[] | null;
   tooltip: { [key: string]: TooltipSection[] };
@@ -36,13 +43,7 @@ export interface ItemData {
   ability_resource_cost: number;
   tech_power: number;
   weapon_power: number;
-  [key: string]:
-    | string
-    | number
-    | boolean
-    | string[]
-    | null
-    | { [key: string]: TooltipSection[] };
+  [key: string]: string | number | boolean | string[] | null | { [key: string]: TooltipSection[] } | ItemComponent[];
 }
 
 interface AbilityProperty {
@@ -87,6 +88,7 @@ interface ItemValue {
   m_eItemSlotType?: string;
   m_bDisabled?: boolean | string | number;
   m_vecComponentItems?: string[];
+  m_strAbilityImage?: string;
   m_vecTooltipSectionInfo?: Array<{
     m_eAbilitySectionType?: string;
     m_vecSectionAttributes: Array<{
@@ -126,6 +128,24 @@ function snakeCase(str: string): string {
     .replace(/([A-Z])/g, '_$1')
     .toLowerCase()
     .replace(/^_/, '');
+}
+
+function parseImagePath(imagePath: string | undefined): string | null {
+  if (!imagePath) return null;
+  
+  // Remove the panorama and file prefix
+  const cleanPath = imagePath.replace(/^panorama:file:\/\/\{images\}\//, '');
+  
+  // Split the path and filename
+  const lastSlashIndex = cleanPath.lastIndexOf('/');
+  const directory = lastSlashIndex !== -1 ? cleanPath.substring(0, lastSlashIndex) : '';
+  const filename = lastSlashIndex !== -1 ? cleanPath.substring(lastSlashIndex + 1) : cleanPath;
+  
+  // Remove the extension and add _psd.png
+  const nameWithoutExt = filename.replace(/\.psd$/, '');
+  
+  // Combine directory and new filename
+  return directory ? `${directory}/${nameWithoutExt}_psd.png` : `${nameWithoutExt}_psd.png`;
 }
 
 function parseTooltipSections(
@@ -263,11 +283,17 @@ function parseItem(
     tier: tier,
     activation: getAbilityActivation(itemValue.m_eAbilityActivation),
     slot: getSlotType(itemValue.m_eItemSlotType),
+    image: parseImagePath(itemValue.m_strAbilityImage),
     components:
-      itemValue.m_vecComponentItems?.map((component) => ({
-        key: component,
-        name: gcLocalisationData[component] || localisationData[component],
-      })) || null,
+      itemValue.m_vecComponentItems?.map((component) => {
+        const componentAbility = abilitiesData[component] as ItemValue;
+        return {
+          key: component,
+          name: gcLocalisationData[component] || localisationData[component],
+          image: parseImagePath(componentAbility?.m_strAbilityImage),
+        };
+      }) || null,
+    componentsOf: [], // Initialize empty array, will be populated later
     target_types: targetTypes,
     shop_filters: shopFilters,
     tooltip: tooltipSections,
@@ -448,7 +474,6 @@ export function collateItemData(outputBaseDir: string): void {
 
   for (const [itemName, itemData] of Object.entries(consolidatedData)) {
     if (itemData.components) {
-      itemData.componentsOf = [];
       for (const item of itemData.components) {
         const componentOf = consolidatedData[item.key];
         if (componentOf) {
@@ -458,6 +483,7 @@ export function collateItemData(outputBaseDir: string): void {
           componentOf.componentsOf.push({
             key: itemName,
             name: itemData.name || '',
+            image: itemData.image,
           });
         }
       }
