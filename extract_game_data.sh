@@ -29,8 +29,8 @@ mkdir -p svgs
 find depots/game/ -type f -name '*.svg' -print0 | xargs -0 -n 1 cp -t svgs/
 
 # Extract video files
-mkdir -p videos
-cp -r "$citadel_folder"/panorama/videos/hero_abilities /output/videos/
+mkdir -p /assets/videos
+cp -r "$citadel_folder"/panorama/videos/hero_abilities /assets/videos/
 find videos -type f -name "*.webm" -print0 | \
     xargs -P 8 -0 -I {} sh -c '
         video_file="{}"
@@ -40,26 +40,26 @@ find videos -type f -name "*.webm" -print0 | \
     '
 
 # Extract image files
-mkdir -p /output/images
-mkdir -p /output/images/hud
-cp -r "$citadel_folder"/panorama/images/heroes /output/images/
-cp -r "$citadel_folder"/panorama/images/hud/*.png /output/images/hud/
-cp "$citadel_folder"/panorama/images/hud/hero_portraits/* /output/images/heroes/
-cp "$citadel_folder"/panorama/images/*.* /output/images/
-cp -r "$citadel_folder"/panorama/images/hud/hero_portraits /output/images/hud/
+mkdir -p /assets/images
+mkdir -p /assets/images/hud
+cp -r "$citadel_folder"/panorama/images/heroes /assets/images/
+cp -r "$citadel_folder"/panorama/images/hud/*.png /assets/images/hud/
+cp "$citadel_folder"/panorama/images/hud/hero_portraits/* /assets/images/heroes/
+cp "$citadel_folder"/panorama/images/*.* /assets/images/
+cp -r "$citadel_folder"/panorama/images/hud/hero_portraits /assets/images/hud/
 
-mkdir -p /output/images/abilities
-cp -r "$citadel_folder"/panorama/images/hud/abilities /output/images/
-cp -r "$citadel_folder"/panorama/images/upgrades /output/images/
+mkdir -p /assets/images/abilities
+cp -r "$citadel_folder"/panorama/images/hud/abilities /assets/images/
+cp -r "$citadel_folder"/panorama/images/upgrades /assets/images/
 
-mkdir -p /output/images/maps
-cp -r "$citadel_folder"/panorama/images/minimap/base/* /output/images/maps/
+mkdir -p /assets/images/maps
+cp -r "$citadel_folder"/panorama/images/minimap/base/* /assets/images/maps/
 
-mkdir -p images/ranks
-cp -r "$citadel_folder"/panorama/images/ranked/badges/* /output/images/ranks/
+mkdir -p /assets/images/ranks
+cp -r "$citadel_folder"/panorama/images/ranked/badges/* /assets/images/ranks/
 
 # Generate webp images
-for file in $(find images -type f -name "*.png"); do
+for file in $(find /assets/images -type f -name "*.png"); do
     base_name=$(basename "$file")
     dir_name=$(dirname "$file")
     file_name="${base_name%.png}"
@@ -70,4 +70,12 @@ for file in $(find images -type f -name "*.png"); do
 done
 
 # Optimize images
-optipng -o2 /output/images/**/*.png
+optipng -o2 /assets/images/**/*.png
+
+# Initialize and push to Git repository
+cd /assets
+git init
+git remote add origin https://oauth2:${GITHUB_TOKEN}@github.com/Deadbotgg/deadlock-assets.git
+git add .
+git commit -m "Update game assets $(date +%Y-%m-%d)"
+git push -f origin main

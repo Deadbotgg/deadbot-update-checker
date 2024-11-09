@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y \
     wget \
     rsync \
     optipng \
+    ffmpeg \
+    imagemagick \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Bun
@@ -34,24 +36,25 @@ RUN mkdir -p /app/repo \
     /app/depots/game \
     /app/svgs \
     /app/videos \
-    /output/videos \
-    /output/images \
-    /output/images/hud \
-    /output/images/heroes \
-    /output/images/abilities \
-    /output/images/maps \
-    /output/images/ranks
+    /assets/videos \
+    /assets/images \
+    /assets/images/hud \
+    /assets/images/heroes \
+    /assets/images/abilities \
+    /assets/images/maps \
+    /assets/images/ranks
+
+# Configure Git globally
+RUN git config --global init.defaultBranch main \
+    && git config --global user.email "patron@deadbot.gg" \
+    && git config --global user.name "Patron" \
+    && git config --global --add safe.directory /assets
 
 # Ensure scripts use LF line endings
 RUN dos2unix /app/fetch.sh /app/pull_and_parse.sh /app/commit_parsed_data.sh /app/process_all_commits.sh /app/extract_game_data.sh
 
 # Make the scripts executable
 RUN chmod +x /app/fetch.sh /app/pull_and_parse.sh /app/commit_parsed_data.sh /app/process_all_commits.sh /app/extract_game_data.sh
-
-# Configure Git
-RUN git config --global init.defaultBranch master
-RUN git config --global user.email "patron@deadbot.gg"
-RUN git config --global user.name "Patron"
 
 # Set up cron job
 RUN echo "*/5 * * * * /bin/bash /app/fetch.sh >> /var/log/fetch.log 2>&1" > /etc/cron.d/fetch-cron
