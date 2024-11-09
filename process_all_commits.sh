@@ -100,6 +100,7 @@ process_commit() {
     
     # Extract version from commit message
     VERSION=$(git show -s --format=%s $commit_hash | sed 's/ |.*$//')
+    COMMIT_DATE=$(git show -s --format=%ci $commit_hash)
     
     # Debug: Print extracted version
     echo "Debug: Extracted version: $VERSION"
@@ -124,7 +125,7 @@ process_commit() {
     
     # Add and commit changes directly to main
     git add -A
-    git commit -m "$VERSION" || {
+    git commit -m "$VERSION ($COMMIT_DATE)" || {
         echo "No changes to commit for $commit_hash"
         cd "$GAME_REPO"
         return 0

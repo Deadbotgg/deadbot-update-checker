@@ -57,7 +57,7 @@ echo "Debug: Extracted version: $VERSION"
 git add -A
 
 # Commit the changes with just the version number
-git commit -m "$VERSION" || {
+git commit -m "$VERSION ($COMMIT_DATE)" || {
     echo "No changes to commit"
     exit 0
 }
