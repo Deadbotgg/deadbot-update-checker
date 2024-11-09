@@ -43,14 +43,14 @@ git checkout main || git checkout -b main
 
 # Get current game commit hash and date from GAME_REPO
 GAME_COMMIT=$(cd "$GAME_REPO" && git rev-parse HEAD)
-CLIENT_VERSION=$(cd "$GAME_REPO" && git show -s --format=%s HEAD | cut -d'|' -f1)
+VERSION=$(cd "$GAME_REPO" && git show -s --format=%s HEAD | sed 's/ |.*$//')
 COMMIT_DATE=$(cd "$GAME_REPO" && git show -s --format=%ci HEAD)
 
 # Add all files in the output directory
 git add -A
 
 # Commit the changes
-git commit -m "$CLIENT_VERSION ($COMMIT_DATE)" || {
+git commit -m "$VERSION ($COMMIT_DATE)" || {
     echo "No changes to commit"
     exit 0
 }

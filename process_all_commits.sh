@@ -125,7 +125,7 @@ process_commit() {
         VERSION_DATE=$(jq -r '.versionDate' version_info.json)
         COMMIT_MESSAGE="$CLIENT_VERSION ($VERSION_DATE)"
     else
-        CLIENT_VERSION=$(git show -s --format=%s $commit_hash | cut -d'|' -f1)
+        CLIENT_VERSION=$(git show -s --format=%s $commit_hash | sed 's/ |.*$//')
         # Fallback to git commit info if version_info.json doesn't exist
         COMMIT_MESSAGE="$CLIENT_VERSION ($commit_date)"
     fi
