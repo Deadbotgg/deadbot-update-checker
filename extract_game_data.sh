@@ -75,7 +75,7 @@ optipng -o2 /assets/images/**/*.png
 # Initialize and push to Git repository
 cd /assets
 git init
-git remote add origin https://oauth2:${GITHUB_TOKEN}@github.com/Deadbotgg/deadlock-assets.git
+git remote add origin https://${GITHUB_TOKEN}@github.com/Deadbotgg/deadlock-assets.git
 git add .
 git commit -m "Update game assets $(date +%Y-%m-%d)"
 git push -f origin main
