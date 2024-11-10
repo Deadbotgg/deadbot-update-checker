@@ -13,6 +13,6 @@
   },
   "dependencies": {
     "dotenv": "^16.4.5",
-    "@deadbot/types": "github:Deadbotgg/deadbot-types"
+    "@deadbot/types": "git+ssh://git@github.com/Deadbotgg/deadbot-types.git"
   }
 }

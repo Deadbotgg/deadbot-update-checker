@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install -y \
     imagemagick \
     && rm -rf /var/lib/apt/lists/*
 
+RUN git config --global url."https://${GITHUB_TOKEN}@github.com".insteadOf "ssh://git@github.com"
+
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash \
     && ln -sf /usr/local/bin/bun /usr/local/bin/bunx
