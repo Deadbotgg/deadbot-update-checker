@@ -42,19 +42,29 @@ find videos -type f -name "*.webm" -print0 | \
 # Extract image files
 mkdir -p /assets/images
 mkdir -p /assets/images/hud
-cp -r "$citadel_folder"/panorama/images/heroes /assets/images/
-cp -r "$citadel_folder"/panorama/images/hud/*.png /assets/images/hud/
-cp "$citadel_folder"/panorama/images/hud/hero_portraits/* /assets/images/heroes/
-cp "$citadel_folder"/panorama/images/*.* /assets/images/
-cp -r "$citadel_folder"/panorama/images/hud/hero_portraits /assets/images/hud/
 
+# Copy all heroes images
+cp -r "$citadel_folder"/panorama/images/heroes /assets/images/
+
+# Copy entire HUD directory structure recursively
+cp -r "$citadel_folder"/panorama/images/hud/* /assets/images/hud/
+
+# Ensure hero portraits are in both locations
+cp "$citadel_folder"/panorama/images/hud/hero_portraits/* /assets/images/heroes/
+
+# Copy root panorama images
+cp "$citadel_folder"/panorama/images/*.* /assets/images/
+
+# Copy abilities and upgrades
 mkdir -p /assets/images/abilities
 cp -r "$citadel_folder"/panorama/images/hud/abilities /assets/images/
 cp -r "$citadel_folder"/panorama/images/upgrades /assets/images/
 
+# Copy map images
 mkdir -p /assets/images/maps
 cp -r "$citadel_folder"/panorama/images/minimap/base/* /assets/images/maps/
 
+# Copy rank images
 mkdir -p /assets/images/ranks
 cp -r "$citadel_folder"/panorama/images/ranked/badges/* /assets/images/ranks/
 
