@@ -102,6 +102,7 @@ export function collateHeroData(outputBaseDir: string): void {
         new_player_friendly:
           (heroData as any)['m_bNewPlayerRecommended'] || false,
         in_development: (heroData as any)['m_bInDevelopment'] || false,
+        in_hero_labs: (heroData as any)['m_bAvailableInHeroLabs'] || false,
         is_disabled: (heroData as any)['m_bDisabled'] || false,
         complexity: (heroData as any)['m_nComplexity'] || 1,
         readability: (heroData as any)['m_nReadability'] || 1,
