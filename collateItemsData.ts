@@ -147,7 +147,7 @@ function parseImagePath(imagePath: string | undefined): string | null {
   const nameWithoutExt = filename.replace(/\.psd$/, '');
   
   // Combine directory and new filename
-  return directory ? `${directory}/${nameWithoutExt}_psd.png` : `${nameWithoutExt}_psd.png`;
+  return directory ? `${directory}/${nameWithoutExt}_psd` : `${nameWithoutExt}_psd`;
 }
 
 function parseTooltipSections(
@@ -371,6 +371,15 @@ function isDisabled(item: ItemValue): boolean {
   return false;
 }
 
+function getItemCategory(key: string): string {
+  if (key.startsWith('upgrade_')) return 'upgrades';
+  if (key.startsWith('ability_')) return 'abilities';
+  if (key.startsWith('armor_')) return 'armor';
+  if (key.startsWith('weapon_')) return 'weapons';
+  if (key.startsWith('tech_')) return 'tech';
+  return 'misc';
+}
+
 export function collateItemData(outputBaseDir: string): void {
   console.log('Collating item data...');
 
@@ -474,6 +483,7 @@ export function collateItemData(outputBaseDir: string): void {
     }
   }
 
+  // Process componentsOf relationships
   for (const [itemName, itemData] of Object.entries(consolidatedData)) {
     if (itemData.components) {
       for (const item of itemData.components) {
@@ -489,6 +499,26 @@ export function collateItemData(outputBaseDir: string): void {
           });
         }
       }
+    }
+  }
+
+  // Create category directories
+  const categories = ['upgrades', 'abilities', 'armor', 'weapons', 'tech'];
+  for (const category of categories) {
+    const categoryDir = path.join(outputBaseDir, 'items', category);
+    if (!fs.existsSync(categoryDir)) {
+      fs.mkdirSync(categoryDir, { recursive: true });
+    }
+  }
+
+  // Write individual item files
+  for (const [itemName, itemData] of Object.entries(consolidatedData)) {
+    const category = getItemCategory(itemName);
+    const itemFile = path.join(outputBaseDir, 'items', category, `${itemName}.json`);
+    try {
+      fs.writeFileSync(itemFile, JSON.stringify(itemData, null, 2));
+    } catch (error) {
+      console.error(`Error writing item file for ${itemName}:`, error);
     }
   }
 

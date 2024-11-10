@@ -204,6 +204,12 @@ export function collateHeroData(outputBaseDir: string): void {
 
   const consolidatedData: { [key: string]: HeroData } = {};
 
+  // Create heroes directory if it doesn't exist
+  const heroesDir = path.join(outputBaseDir, 'heroes');
+  if (!fs.existsSync(heroesDir)) {
+    fs.mkdirSync(heroesDir, { recursive: true });
+  }
+
   // Process heroes
   for (const [heroName, heroData] of Object.entries(heroesData)) {
     if (!heroName.startsWith('hero_') || heroName.endsWith("base") || heroName.endsWith("dummy")) continue;
@@ -381,7 +387,16 @@ export function collateHeroData(outputBaseDir: string): void {
       }
 
       consolidatedData[cleanHeroName] = hero;
-      console.log(`Processed hero: ${cleanHeroName}`);
+
+      // Write individual hero file
+      const heroFile = path.join(heroesDir, `${cleanHeroName}.json`);
+      try {
+        fs.writeFileSync(heroFile, JSON.stringify(hero, null, 2));
+        console.log(`Processed hero: ${cleanHeroName} -> ${heroFile}`);
+      } catch (error) {
+        console.error(`Error writing hero file for ${cleanHeroName}:`, error);
+      }
+
     } catch (error) {
       console.error(`Error processing hero ${cleanHeroName}:`, error);
     }

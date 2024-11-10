@@ -88,4 +88,4 @@ git init
 git remote add origin https://${GITHUB_TOKEN}@github.com/Deadbotgg/deadlock-assets.git
 git add .
 git commit -m "Update game assets $(date +%Y-%m-%d)"
-git push -f origin main
+git push --set-upstream origin main
