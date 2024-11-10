@@ -1,3 +1,5 @@
+import type { AttrMapEntry } from '@deadbot/types';
+
 export function getScaleType(scaleType: string | undefined): string {
   if (!scaleType) return 'Unknown';
 
@@ -128,11 +130,6 @@ export function getShopAttrGroup(category: string): string {
   };
 
   return groupMap[category] || category;
-}
-
-export interface AttrMapEntry {
-  label?: string;
-  postfix?: string;
 }
 
 export function getAttrManualMap(): { [key: string]: AttrMapEntry } {

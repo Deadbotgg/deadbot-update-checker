@@ -1,3 +1,7 @@
+import type {
+  ItemData,
+  ItemTooltipSection
+} from '@deadbot/types';
 import fs from 'fs';
 import path from 'path';
 import {
@@ -10,72 +14,11 @@ import {
 } from './utils/maps';
 import { formatDescription } from './utils/stringUtils';
 
-interface ItemComponent {
-  key: string;
-  name: string;
-  image: string | null;
-}
-
-export interface ItemData {
-  name: string | null;
-  description: string | null;
-  cost: string;
-  tier: string | null;
-  activation: string;
-  slot: string | null;
-  image: string | null;
-  components: ItemComponent[] | null;
-  componentsOf: ItemComponent[] | null;
-  target_types: string[] | null;
-  shop_filters: string[] | null;
-  tooltip: { [key: string]: TooltipSection[] };
-  disabled: boolean;
-  ability_cooldown: number;
-  ability_duration: number;
-  ability_cast_range: number;
-  ability_unit_target_limit: number;
-  ability_cast_delay: number;
-  ability_channel_time: number;
-  ability_post_cast_duration: number;
-  ability_charges: number;
-  ability_cooldown_between_charge: number;
-  channel_move_speed: number;
-  ability_resource_cost: number;
-  tech_power: number;
-  weapon_power: number;
-  [key: string]: string | number | boolean | string[] | null | { [key: string]: TooltipSection[] } | ItemComponent[];
-}
-
 interface AbilityProperty {
   m_strValue: string;
   m_strCSSClass?: string;
   m_bIsNegativeAttribute?: boolean;
   m_UsageFlags?: string;
-}
-
-interface TooltipSection {
-  ability_properties: {
-    [key: string]: {
-      value: number;
-      style: string | null;
-      is_negative: boolean;
-    };
-  };
-  elevated_ability_properties: {
-    [key: string]: {
-      value: number;
-      style: string | null;
-      is_negative: boolean;
-    };
-  };
-  important_ability_properties: {
-    [key: string]: {
-      value: number;
-      style: string | null;
-      is_conditional: boolean;
-    };
-  };
-  description: string;
 }
 
 interface ItemValue {
@@ -153,8 +96,8 @@ function parseImagePath(imagePath: string | undefined): string | null {
 function parseTooltipSections(
   itemValue: ItemValue,
   localisationData: any
-): { [key: string]: TooltipSection[] } {
-  const tooltipSections: { [key: string]: TooltipSection[] } = {};
+): { [key: string]: ItemTooltipSection[] } {
+  const tooltipSections: { [key: string]: ItemTooltipSection[] } = {};
   const abilityProps = itemValue.m_mapAbilityProperties;
 
   if (itemValue.m_vecTooltipSectionInfo) {
@@ -168,7 +111,7 @@ function parseTooltipSections(
       for (const attr of section.m_vecSectionAttributes) {
         const descriptionKey =
           String(attr.m_strLocString)?.replace('#', '') || '';
-        const tooltipSection: TooltipSection = {
+        const tooltipSection: ItemTooltipSection = {
           ability_properties: {},
           elevated_ability_properties: {},
           important_ability_properties: {},
@@ -503,7 +446,7 @@ export function collateItemData(outputBaseDir: string): void {
   }
 
   // Create category directories
-  const categories = ['upgrades', 'abilities', 'armor', 'weapons', 'tech'];
+  const categories = ['upgrades'];
   for (const category of categories) {
     const categoryDir = path.join(outputBaseDir, 'items', category);
     if (!fs.existsSync(categoryDir)) {

@@ -1,57 +1,13 @@
+import type {
+  AbilitySpiritScaling,
+  AbilityStats,
+  AbilityTooltipProperty,
+  AbilityTooltipSection,
+  ConvertedAbility,
+  DataProperty,
+  ScaleFunction
+} from '@deadbot/types';
 import { getScaleType } from './utils/maps';
-
-interface ScaleFunction {
-  value: number;
-  type: string;
-}
-
-interface DataProperty {
-  name: string;
-  [key: string]: any;
-}
-
-interface TooltipProperty {
-  name: string;
-  requiresUpgrade?: boolean;
-  statusEffect?: DataProperty;
-  isShown?: boolean;
-  data?: any;
-}
-
-interface TooltipSection {
-  name?: string;
-  description: string;
-  properties: TooltipProperty[];
-  upgradeRequired?: DataProperty;
-  basicProperties?: TooltipProperty[];
-  data?: any;
-}
-
-interface AbilitySpiritScaling {
-  damage_scaling?: number;
-  duration_scaling?: number;
-  range_scaling?: number;
-  cooldown_scaling?: number;
-}
-
-interface AbilityStats {
-  damage?: number;
-  duration?: number;
-  cooldown?: number;
-  range?: number;
-  charges?: number;
-  charge_restore_time?: number;
-  channel_duration?: number;
-  resource_cost?: number;
-  [key: string]: any;
-}
-
-export interface ConvertedAbility {
-  tooltipDetails: TooltipSection[];
-
-  stats: AbilityStats;
-  spirit_scaling?: AbilitySpiritScaling;
-}
 
 function snakeCase(str: string): string {
   return str
@@ -138,10 +94,9 @@ function extractAbilityStats(abilityData: any): AbilityStats {
 function convertAbilityData(
   abilityData: any,
   localisationData: any
-): ConvertedAbility {
-  const convertedAbility: ConvertedAbility = {
+): Partial<ConvertedAbility> {
+  const convertedAbility: Partial<ConvertedAbility> = {
     tooltipDetails: [],
-
     stats: extractAbilityStats(abilityData),
   };
 
@@ -165,12 +120,12 @@ function convertTooltipDetails(
   tooltipDetails: any,
   abilityData: any,
   localisationData: any
-): TooltipSection[] {
-  const result: TooltipSection[] = [];
+): AbilityTooltipSection[] {
+  const result: AbilityTooltipSection[] = [];
 
   for (const section of tooltipDetails.m_vecAbilityInfoSections) {
     const descKey = !!section.m_strLocString ? section.m_strLocString?.replace('#', '') : undefined;
-    const convertedSection: TooltipSection = {
+    const convertedSection: AbilityTooltipSection = {
       description: localisationData[descKey] || descKey,
       properties: [],
     };
@@ -182,7 +137,7 @@ function convertTooltipDetails(
             '#',
             ''
           );
-          const subSection: TooltipSection = {
+          const subSection: AbilityTooltipSection = {
             description: localisationData[blockDescKey],
             properties: convertProperties(
               block.m_vecAbilityProperties,
@@ -234,7 +189,7 @@ function convertTooltipDetails(
 function convertProperties(
   properties: any[],
   abilityData: any
-): TooltipProperty[] {
+): AbilityTooltipProperty[] {
   return properties.map((prop) => {
     const propertyName = prop.m_strImportantProperty || prop.m_strPropertyName;
     const dataProperty = getDataPropertyFromAbility(abilityData, propertyName);
@@ -309,7 +264,7 @@ export function convertAbility(
   abilitiesData: Record<string, any>,
   abilityKey: string,
   localisationData: Record<string, string>
-): ConvertedAbility {
+): Partial<ConvertedAbility> {
   const ability = abilitiesData[abilityKey];
   if (ability) {
     return convertAbilityData(ability, localisationData);

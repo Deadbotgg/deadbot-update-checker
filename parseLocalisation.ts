@@ -1,6 +1,6 @@
-interface LocalisationData {
-  [key: string]: string;
-}
+import type { LocalisationData, LocalisationsByLanguage } from '@deadbot/types';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export function parseLocalisation(lines: string[]): LocalisationData {
   const result: LocalisationData = {};
@@ -34,9 +34,6 @@ export function parseLocalisation(lines: string[]): LocalisationData {
   return result;
 }
 
-import * as fs from 'fs';
-import * as path from 'path';
-
 // Function to read and parse a JSON file
 function readJsonFile(filePath: string): any {
     try {
@@ -58,10 +55,10 @@ function extractLanguage(filename: string): string {
     return parts[parts.length - 1];
 }
 
-// New function to combine JSON localization files grouped by language
-export function combineLocalisations(dir: string) {
+// Function to combine JSON localization files grouped by language
+export function combineLocalisations(dir: string): LocalisationsByLanguage {
     const baseDir = path.join(dir, 'localisation');
-    const localizationsByLanguage: { [key: string]: LocalisationData } = {};
+    const localizationsByLanguage: LocalisationsByLanguage = {};
 
     // Get all JSON files in the directory
     const files = fs.readdirSync(baseDir)
