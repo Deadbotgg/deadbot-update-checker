@@ -3,17 +3,18 @@ import type {
   AbilityStats,
   AbilityTooltipProperty,
   AbilityTooltipSection,
+  AbilityUpgrade,
   ConvertedAbility,
   DataProperty,
-  ScaleFunction
+  ScaleFunction,
 } from '@deadbot/types';
 import { getScaleType } from './utils/maps';
 
 function snakeCase(str: string): string {
   return str
-    .replace(/([A-Z])/g, '_$1')
-    .toLowerCase()
-    .replace(/^_/, '');
+    .replace(/([a-z])([A-Z])/g, '$1_$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1_$2')
+    .toLowerCase();
 }
 
 function extractSpiritScaling(
@@ -91,15 +92,31 @@ function extractAbilityStats(abilityData: any): AbilityStats {
   return stats;
 }
 
+function convertAbilityUpgrade(
+  upgradeData: any,
+  localisationData: any
+): AbilityUpgrade {
+  return upgradeData.m_vecPropertyUpgrades.reduce(
+    (acc: AbilityUpgrade, upgrade: any) => {
+      const propertyName = snakeCase(upgrade.m_strPropertyName);
+      return {
+        ...acc,
+        [propertyName]: parseFloat(upgrade.m_strBonus),
+        name: localisationData[upgrade.m_strPropertyName + '_label'],
+      };
+    },
+    {}
+  );
+}
+
 function convertAbilityData(
   abilityData: any,
   localisationData: any
 ): Partial<ConvertedAbility> {
   const convertedAbility: Partial<ConvertedAbility> = {
-    tooltipDetails: [],
     stats: extractAbilityStats(abilityData),
   };
-
+  console.log(abilityData);
   if (abilityData.m_AbilityTooltipDetails) {
     convertedAbility.tooltipDetails = convertTooltipDetails(
       abilityData.m_AbilityTooltipDetails,
@@ -116,17 +133,27 @@ function convertAbilityData(
   return convertedAbility;
 }
 
+function unescapeString(str: string): string {
+  try {
+    return JSON.parse(`"${str.replace(/^"|"$/g, '')}"`);
+  } catch {
+    return str;
+  }
+}
+
 function convertTooltipDetails(
   tooltipDetails: any,
   abilityData: any,
   localisationData: any
-): AbilityTooltipSection[] {
-  const result: AbilityTooltipSection[] = [];
+): AbilityTooltipSection {
+  let result: Partial<AbilityTooltipSection> = {};
 
   for (const section of tooltipDetails.m_vecAbilityInfoSections) {
-    const descKey = !!section.m_strLocString ? section.m_strLocString?.replace('#', '') : undefined;
+    const descKey = !!section.m_strLocString
+      ? section.m_strLocString?.replace('#', '')
+      : undefined;
     const convertedSection: AbilityTooltipSection = {
-      description: localisationData[descKey] || descKey,
+      description: unescapeString(localisationData[descKey] || descKey),
       properties: [],
     };
 
@@ -138,7 +165,7 @@ function convertTooltipDetails(
             ''
           );
           const subSection: AbilityTooltipSection = {
-            description: localisationData[blockDescKey],
+            description: unescapeString(localisationData[blockDescKey]),
             properties: convertProperties(
               block.m_vecAbilityProperties,
               abilityData
@@ -150,7 +177,7 @@ function convertTooltipDetails(
               section.m_strAbilityPropertyUpgradeRequired
             );
           }
-          result.push(subSection);
+          result = subSection;
         } else {
           convertedSection.properties = convertedSection.properties.concat(
             convertProperties(block.m_vecAbilityProperties, abilityData)
@@ -173,17 +200,25 @@ function convertTooltipDetails(
         section.m_strAbilityPropertyUpgradeRequired
       );
     }
+    if (abilityData.m_vecAbilityUpgrades) {
+      console.log(section.m_vecAbilityUpgrades);
+      convertedSection.upgrades = abilityData.m_vecAbilityUpgrades.map(
+        (upgrade: any) => {
+          return convertAbilityUpgrade(upgrade, localisationData);
+        }
+      );
+    }
 
     if (
       convertedSection.properties.length > 0 ||
       convertedSection.basicProperties?.length ||
       convertedSection.name
     ) {
-      result.push(convertedSection);
+      result = convertedSection;
     }
   }
 
-  return result;
+  return result as AbilityTooltipSection;
 }
 
 function convertProperties(
@@ -249,7 +284,7 @@ function transformObject(obj: any): any {
 }
 
 function transformKey(key: string): string {
-  let newKey = key.replace(/^m_(str|subclass)/, '');
+  let newKey = key.replace(/^m_(str|subclass|E|_)/, '');
 
   if (newKey === 'CSSClass') {
     newKey = 'type';
