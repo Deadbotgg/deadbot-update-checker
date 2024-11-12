@@ -116,7 +116,7 @@ function convertAbilityData(
   const convertedAbility: Partial<ConvertedAbility> = {
     stats: extractAbilityStats(abilityData),
   };
-  console.log(abilityData);
+
   if (abilityData.m_AbilityTooltipDetails) {
     convertedAbility.tooltipDetails = convertTooltipDetails(
       abilityData.m_AbilityTooltipDetails,
@@ -201,7 +201,7 @@ function convertTooltipDetails(
       );
     }
     if (abilityData.m_vecAbilityUpgrades) {
-      console.log(section.m_vecAbilityUpgrades);
+
       convertedSection.upgrades = abilityData.m_vecAbilityUpgrades.map(
         (upgrade: any) => {
           return convertAbilityUpgrade(upgrade, localisationData);
