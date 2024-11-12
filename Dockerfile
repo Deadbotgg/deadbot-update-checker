@@ -70,4 +70,4 @@ RUN touch /var/log/fetch.log /var/log/cron.log && chmod 666 /var/log/fetch.log /
 CMD ["bash", "-c", "service cron start && echo 'Starting cron daemon...' && echo 'Running initial fetch...' && /bin/bash /app/fetch.sh && echo 'Initial fetch completed. Tailing logs...' && tail -f /var/log/fetch.log /var/log/cron.log"]
 
 # run process_all_commits.sh on container start
-CMD ["bash", "-c", "/bin/bash /app/process_all_commits.sh"]
+CMD ["bash", "-c", "/bin/bash /app/process_all_commits.sh /app/repo"]
