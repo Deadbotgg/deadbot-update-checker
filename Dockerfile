@@ -5,6 +5,7 @@ FROM node:20-slim
 RUN apt-get update && apt-get install -y \
     git \
     dos2unix \
+    nano \
     libstdc++6 \
     libicu72 \
     cron \
@@ -60,7 +61,7 @@ RUN chmod +x /app/fetch.sh /app/pull_and_parse.sh /app/commit_parsed_data.sh /ap
 
 # Set up cron job
 RUN echo "GITHUB_TOKEN=${GITHUB_TOKEN}" >> /etc/environment
-RUN echo "*/5 * * * * . /etc/environment; /bin/bash /app/fetch.sh >> /var/log/fetch.log 2>&1" > /etc/cron.d/fetch-cron
+RUN echo "*/1 * * * * . /etc/environment; /bin/bash /app/fetch.sh >> /var/log/fetch.log 2>&1" > /etc/cron.d/fetch-cron
 RUN chmod 0644 /etc/cron.d/fetch-cron
 RUN crontab /etc/cron.d/fetch-cron
 

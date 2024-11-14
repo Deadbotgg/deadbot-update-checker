@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 
 # Set up logging
 LOGFILE="/var/log/fetch.log"
