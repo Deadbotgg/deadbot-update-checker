@@ -59,7 +59,8 @@ RUN dos2unix /app/fetch.sh /app/pull_and_parse.sh /app/commit_parsed_data.sh /ap
 RUN chmod +x /app/fetch.sh /app/pull_and_parse.sh /app/commit_parsed_data.sh /app/process_all_commits.sh /app/extract_game_data.sh
 
 # Set up cron job
-RUN echo "*/5 * * * * GITHUB_TOKEN=$GITHUB_TOKEN /bin/bash /app/fetch.sh >> /var/log/fetch.log 2>&1" > /etc/cron.d/fetch-cron
+RUN echo "GITHUB_TOKEN=${GITHUB_TOKEN}" >> /etc/environment
+RUN echo "*/5 * * * * . /etc/environment; /bin/bash /app/fetch.sh >> /var/log/fetch.log 2>&1" > /etc/cron.d/fetch-cron
 RUN chmod 0644 /etc/cron.d/fetch-cron
 RUN crontab /etc/cron.d/fetch-cron
 
@@ -68,4 +69,3 @@ RUN touch /var/log/fetch.log /var/log/cron.log && chmod 666 /var/log/fetch.log /
 
 # Start cron and run initial fetch
 CMD ["bash", "-c", "service cron start && echo 'Starting cron daemon...' && echo 'Running initial fetch...' && /bin/bash /app/fetch.sh && echo 'Initial fetch completed. Tailing logs...' && tail -f /var/log/fetch.log /var/log/cron.log"]
-
